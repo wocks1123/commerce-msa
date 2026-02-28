@@ -15,7 +15,6 @@ Content-Type: application/json
   "items": [
     {
       "productId": 5,
-      "productName": "Premium Wireless Headphones",
       "unitPrice": 199000,
       "quantity": 2,
       "lineAmount": 398000,

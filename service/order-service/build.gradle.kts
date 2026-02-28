@@ -11,8 +11,6 @@ dependencies {
     implementation("org.postgresql:postgresql")
 
     implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

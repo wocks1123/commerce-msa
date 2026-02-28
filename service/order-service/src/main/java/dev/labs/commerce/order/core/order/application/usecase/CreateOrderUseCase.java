@@ -27,12 +27,12 @@ public class CreateOrderUseCase {
     private final ProductPort productPort;
 
     public CreateOrderResult execute(CreateOrderCommand command) {
-        validateProducts(command);
+        Map<Long, ProductInfo> productMap = validateProducts(command);
 
         List<OrderItem> items = command.items().stream()
                 .map(item -> OrderItem.create(
                         item.productId(),
-                        item.productName(),
+                        productMap.get(item.productId()).productName(),
                         item.unitPrice(),
                         item.quantity(),
                         item.currency()
@@ -51,7 +51,7 @@ public class CreateOrderUseCase {
         );
     }
 
-    private void validateProducts(CreateOrderCommand command) {
+    private Map<Long, ProductInfo> validateProducts(CreateOrderCommand command) {
         List<Long> productIds = command.items().stream()
                 .map(OrderItemCommand::productId)
                 .toList();
@@ -75,6 +75,15 @@ public class CreateOrderUseCase {
                 throw new OrderProductInvalidException(
                         OrderErrorCode.PRODUCT_NOT_ACTIVE,
                         "Product is not available for order. productId=" + item.productId()
+                );
+            }
+
+            if (item.unitPrice() != product.price()) {
+                throw new OrderProductInvalidException(
+                        OrderErrorCode.LINE_AMOUNT_MISMATCH,
+                        "Unit price mismatch. productId=" + item.productId()
+                                + ", expected=" + product.price()
+                                + ", actual=" + item.unitPrice()
                 );
             }
 
@@ -104,5 +113,7 @@ public class CreateOrderUseCase {
                     "Total amount mismatch. expected=" + expectedTotalAmount + ", actual=" + command.totalAmount()
             );
         }
+
+        return productMap;
     }
 }

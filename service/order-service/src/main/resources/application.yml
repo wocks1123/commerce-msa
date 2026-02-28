@@ -20,6 +20,9 @@ spring:
     hibernate:
       ddl-auto: update
 
-client:
-  product-service:
-    url: http://localhost:20101
+service:
+  client:
+    product:
+      base-url: http://localhost:20101
+      connect-timeout: 3000
+      read-timeout: 5000

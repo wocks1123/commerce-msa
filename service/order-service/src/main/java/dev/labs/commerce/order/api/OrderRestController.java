@@ -30,7 +30,6 @@ public class OrderRestController {
         List<OrderItemCommand> itemCommands = request.items().stream()
                 .map(item -> new OrderItemCommand(
                         item.productId(),
-                        item.productName(),
                         item.unitPrice(),
                         item.quantity(),
                         item.lineAmount(),
