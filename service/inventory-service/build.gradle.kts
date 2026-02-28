@@ -1,8 +1,30 @@
+plugins {
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
+}
+
+openApi {
+    apiDocsUrl.set("http://localhost:20102/api-docs")
+    outputFileName.set("openapi.json")
+
+    customBootRun {
+        args.set(
+            listOf(
+                "--server.port=20102",
+                "--spring.profiles.active=openapi"
+            )
+        )
+    }
+
+    waitTimeInSeconds.set(30)
+}
+
 dependencies {
     implementation(project(":shared:common"))
 
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.10")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:6.1:jakarta")
