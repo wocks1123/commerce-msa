@@ -4,7 +4,9 @@ import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterPr
 import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterProductResult;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
+import dev.labs.commerce.product.core.product.domain.event.ProductRegisteredEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,10 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegisterProductUseCase {
 
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public RegisterProductResult execute(RegisterProductCommand command) {
-        // Create product using domain factory method
         Product product = Product.create(
                 command.productName(),
                 command.price(),
@@ -24,10 +26,12 @@ public class RegisterProductUseCase {
                 command.description()
         );
 
-        // Persist the product
         Product savedProduct = productRepository.save(product);
 
-        // Convert to result
+        applicationEventPublisher.publishEvent(
+                new ProductRegisteredEvent(savedProduct.getProductId())
+        );
+
         return new RegisterProductResult(
                 savedProduct.getProductId(),
                 savedProduct.getProductName(),

@@ -20,6 +20,16 @@ spring:
     hibernate:
       ddl-auto: update
 
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:20023
+      bindings:
+        product-registered-out-0:
+          destination: product
+          content-type: application/json
+
 springdoc:
   api-docs:
     path: /api-docs
