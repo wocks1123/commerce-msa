@@ -1,20 +1,17 @@
 package dev.labs.commerce.product.api;
 
+import dev.labs.commerce.common.web.doc.ApiBadRequestResponse;
+import dev.labs.commerce.common.web.doc.ApiConflictResponse;
+import dev.labs.commerce.common.web.doc.ApiNotFoundResponse;
 import dev.labs.commerce.product.api.dto.*;
-import dev.labs.commerce.product.core.product.application.usecase.ChangeProductStatusUseCase;
-import dev.labs.commerce.product.core.product.application.usecase.GetProductUseCase;
-import dev.labs.commerce.product.core.product.application.usecase.ListProductsUseCase;
-import dev.labs.commerce.product.core.product.application.usecase.ModifyProductUseCase;
-import dev.labs.commerce.product.core.product.application.usecase.RegisterProductUseCase;
-import dev.labs.commerce.product.core.product.application.usecase.dto.ChangeProductStatusCommand;
-import dev.labs.commerce.product.core.product.application.usecase.dto.ChangeProductStatusResult;
-import dev.labs.commerce.product.core.product.application.usecase.dto.GetProductResult;
-import dev.labs.commerce.product.core.product.application.usecase.dto.ListProductsResult;
-import dev.labs.commerce.product.core.product.application.usecase.dto.ModifyProductCommand;
-import dev.labs.commerce.product.core.product.application.usecase.dto.ModifyProductResult;
-import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterProductCommand;
-import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterProductResult;
+import dev.labs.commerce.product.core.product.application.usecase.*;
+import dev.labs.commerce.product.core.product.application.usecase.dto.*;
 import dev.labs.commerce.product.core.product.domain.ProductStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
+@Tag(name = "Product Master", description = "Product Master API")
 public class ProductRestController {
 
     private final RegisterProductUseCase registerProductUseCase;
@@ -34,6 +32,10 @@ public class ProductRestController {
     private final GetProductUseCase getProductUseCase;
     private final ListProductsUseCase listProductsUseCase;
 
+    @Operation(summary = "Register new product")
+    @ApiResponse(responseCode = "201", description = "Product registered successfully", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
+    @ApiBadRequestResponse
+    @ApiConflictResponse
     @PostMapping
     public ResponseEntity<ProductResponse> registerProduct(@RequestBody RegisterProductRequest request) {
         RegisterProductCommand command = new RegisterProductCommand(
@@ -46,6 +48,10 @@ public class ProductRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toProductResponse(result));
     }
 
+    @Operation(summary = "Modify product details")
+    @ApiResponse(responseCode = "200", description = "Product modified successfully", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
+    @ApiBadRequestResponse
+    @ApiNotFoundResponse
     @PutMapping("/{productId}")
     public ProductResponse modifyProduct(@PathVariable Long productId,
                                          @RequestBody ModifyProductRequest request) {
@@ -60,6 +66,10 @@ public class ProductRestController {
         return toProductResponse(result);
     }
 
+    @Operation(summary = "Change product status")
+    @ApiResponse(responseCode = "200", description = "Product status changed successfully", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
+    @ApiBadRequestResponse
+    @ApiNotFoundResponse
     @PatchMapping("/{productId}/status")
     public ProductResponse changeProductStatus(@PathVariable Long productId,
                                                @RequestBody ChangeProductStatusRequest request) {
@@ -68,12 +78,19 @@ public class ProductRestController {
         return toProductResponse(result);
     }
 
+    @Operation(summary = "Get product details")
+    @ApiResponse(responseCode = "200", description = "Product details retrieved successfully", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
+    @ApiBadRequestResponse
+    @ApiNotFoundResponse
     @GetMapping("/{productId}")
     public ProductResponse getProduct(@PathVariable Long productId) {
         GetProductResult result = getProductUseCase.execute(productId);
         return toProductResponse(result);
     }
 
+    @Operation(summary = "List all products")
+    @ApiResponse(responseCode = "200", description = "Products listed successfully", content = @Content(schema = @Schema(implementation = ProductSummaryResponse.class)))
+    @ApiBadRequestResponse
     @GetMapping
     public List<ProductSummaryResponse> listProducts(@RequestParam(required = false) ProductStatus status) {
         return listProductsUseCase.execute(status)

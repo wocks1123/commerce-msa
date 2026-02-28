@@ -24,6 +24,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.10")
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:6.1:jakarta")
     implementation("io.github.openfeign.querydsl:querydsl-jpa:6.1")
