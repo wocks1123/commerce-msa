@@ -1,3 +1,23 @@
+plugins {
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
+}
+
+openApi {
+    apiDocsUrl.set("http://localhost:20101/api-docs")
+    outputFileName.set("openapi.json")
+
+    customBootRun {
+        args.set(
+            listOf(
+                "--server.port=20101",
+                "--spring.profiles.active=openapi"
+            )
+        )
+    }
+
+    waitTimeInSeconds.set(30)
+}
+
 dependencies {
     implementation(project(":shared:common"))
 

@@ -5,6 +5,8 @@ dependencies {
     implementation("org.springframework:spring-web")
     compileOnly("jakarta.servlet:jakarta.servlet-api")
 
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.10")
+
     annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:6.1:jakarta")
     implementation("io.github.openfeign.querydsl:querydsl-jpa:6.1")
 }
