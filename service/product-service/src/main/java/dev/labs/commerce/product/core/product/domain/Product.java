@@ -1,6 +1,8 @@
 package dev.labs.commerce.product.core.product.domain;
 
 import dev.labs.commerce.common.entity.BaseEntity;
+import dev.labs.commerce.product.core.product.domain.error.InvalidProductStatusException;
+import dev.labs.commerce.product.core.product.domain.error.ProductErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -52,7 +54,7 @@ public class Product extends BaseEntity {
 
     public void modify(String name, long priceAmount, String currency, String description) {
         if (this.productStatus == ProductStatus.DISCONTINUED) {
-            throw new IllegalStateException("DISCONTINUED product cannot be updated.");
+            throw new InvalidProductStatusException(ProductErrorCode.INVALID_PRODUCT_STATUS, "DISCONTINUED product cannot be updated.");
         }
         this.productName = name;
         this.price = priceAmount;
@@ -62,7 +64,7 @@ public class Product extends BaseEntity {
 
     public void changeStatus(ProductStatus newStatus) {
         if (this.productStatus == ProductStatus.DISCONTINUED && newStatus != ProductStatus.DISCONTINUED) {
-            throw new IllegalStateException("DISCONTINUED product cannot be reactivated.");
+            throw new InvalidProductStatusException(ProductErrorCode.INVALID_PRODUCT_STATUS, "DISCONTINUED product cannot be reactivated.");
         }
         this.productStatus = newStatus;
     }

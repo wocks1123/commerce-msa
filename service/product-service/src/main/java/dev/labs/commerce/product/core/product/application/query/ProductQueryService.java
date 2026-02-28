@@ -5,6 +5,8 @@ import dev.labs.commerce.product.core.product.application.usecase.dto.ListProduc
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
 import dev.labs.commerce.product.core.product.domain.ProductStatus;
+import dev.labs.commerce.product.core.product.domain.error.ProductErrorCode;
+import dev.labs.commerce.product.core.product.domain.error.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +21,7 @@ public class ProductQueryService {
 
     public GetProductResult getProduct(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND, "Product not found: " + productId));
 
         return new GetProductResult(
                 product.getProductId(),

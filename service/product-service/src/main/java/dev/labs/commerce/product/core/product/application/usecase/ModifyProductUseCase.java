@@ -4,6 +4,8 @@ import dev.labs.commerce.product.core.product.application.usecase.dto.ModifyProd
 import dev.labs.commerce.product.core.product.application.usecase.dto.ModifyProductResult;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
+import dev.labs.commerce.product.core.product.domain.error.ProductErrorCode;
+import dev.labs.commerce.product.core.product.domain.error.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,7 @@ public class ModifyProductUseCase {
     public ModifyProductResult execute(ModifyProductCommand command) {
         // Retrieve product
         Product product = productRepository.findById(command.productId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + command.productId()));
+                .orElseThrow(() -> new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND, "Product not found: " + command.productId()));
 
         // Modify product using domain method
         product.modify(
