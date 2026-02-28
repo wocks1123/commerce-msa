@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Entity
 @Table(
@@ -43,6 +44,11 @@ public class Product extends BaseEntity {
 
 
     public static Product create(String name, long price, String currency, String description) {
+        Assert.hasText(name, "productName must not be empty");
+        Assert.isTrue(price >= 0, "price must be zero or greater");
+        Assert.hasText(currency, "currency must not be empty");
+        Assert.hasText(description, "description must not be empty");
+
         Product p = new Product();
         p.productName = name;
         p.price = price;
