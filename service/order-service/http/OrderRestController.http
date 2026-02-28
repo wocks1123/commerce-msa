@@ -1,0 +1,25 @@
+###### Variables
+### Base URL
+@BASE_URL = http://localhost:20103
+#################################################
+
+### Create order
+POST {{BASE_URL}}/api/v1/orders
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "currency": "KRW",
+  "totalPrice": 398000,
+  "totalAmount": 2,
+  "items": [
+    {
+      "productId": 5,
+      "productName": "Premium Wireless Headphones",
+      "unitPrice": 199000,
+      "quantity": 2,
+      "lineAmount": 398000,
+      "currency": "KRW"
+    }
+  ]
+}

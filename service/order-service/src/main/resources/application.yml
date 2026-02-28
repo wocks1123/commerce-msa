@@ -19,3 +19,7 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+
+client:
+  product-service:
+    url: http://localhost:20101
