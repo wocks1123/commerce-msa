@@ -12,7 +12,7 @@ public record EventEnvelope<T>(
     ) {
         EventMeta meta = new EventMeta(
                 UUID.randomUUID().toString(),
-                payloadType.getName(),
+                payloadType.getSimpleName(),
                 Instant.now()
         );
         return new EventEnvelope<>(meta, payload);
