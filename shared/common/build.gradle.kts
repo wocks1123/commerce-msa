@@ -9,6 +9,8 @@ dependencies {
 
     annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:6.1:jakarta")
     implementation("io.github.openfeign.querydsl:querydsl-jpa:6.1")
+
+    implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
 }
 
 tasks.bootJar {
