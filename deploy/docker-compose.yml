@@ -1,0 +1,64 @@
+name: commerce-msa
+
+services:
+  postgres:
+    container_name: commerce-postgres
+    image: postgres:16-alpine
+    ports:
+      - "20011:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: commerce
+      TZ: Asia/Seoul
+    command: >
+      postgres
+      -c log_directory=/logs/pg_log
+      -c log_filename=postgresql-%Y-%m-%d_%H%M%S.log
+      -c log_statement=all
+      -c logging_collector=on
+      -c log_destination=stderr
+    volumes:
+      - ./pg_log:/logs/pg_log
+  redis:
+    image: redis:7
+    container_name: commerce-redis
+    command: [ "redis-server", "--appendonly", "yes" ]
+    ports:
+      - "20021:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: commerce-kafka
+    hostname: kafka
+    ports:
+      - "20023:9092"   # host(내 PC)에서 접속
+    environment:
+      # ---- KRaft ----
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_PROCESS_ROLES: "controller,broker"
+      KAFKA_NODE_ID: "1"
+      # 컨트롤러 quorum (단일 노드면 1개)
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+
+      # ---- listeners ----
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      # 내 PC에서 접근할 주소
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+
+      # ---- dev 편의 ----
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+
+      # 클러스터 ID(아무거나 X → 형식 맞는 값 필요)
+      # 아래 값은 예시. 아래 "클러스터 ID 생성" 참고
+      CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
