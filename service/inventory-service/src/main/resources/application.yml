@@ -19,3 +19,16 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+
+  cloud:
+    function:
+      definition: onProductEvents
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:20023
+      bindings:
+        onProductEvents-in-0:
+          destination: product
+          group: inventory-service
+          content-type: application/json
