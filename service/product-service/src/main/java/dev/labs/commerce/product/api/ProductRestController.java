@@ -31,6 +31,7 @@ public class ProductRestController {
     private final ChangeProductStatusUseCase changeProductStatusUseCase;
     private final GetProductUseCase getProductUseCase;
     private final ListProductsUseCase listProductsUseCase;
+    private final ListProductsByIdsUseCase listProductsByIdsUseCase;
 
     @Operation(summary = "Register new product")
     @ApiResponse(responseCode = "201", description = "Product registered successfully", content = @Content(schema = @Schema(implementation = ProductResponse.class)))
@@ -99,6 +100,17 @@ public class ProductRestController {
                 .collect(Collectors.toList());
     }
 
+    @Operation(summary = "List products by IDs")
+    @ApiResponse(responseCode = "200", description = "Products retrieved successfully", content = @Content(schema = @Schema(implementation = ProductSummaryResponse.class)))
+    @ApiBadRequestResponse
+    @GetMapping(params = "ids")
+    public List<ProductSummaryResponse> listProductsByIds(@RequestParam List<Long> ids) {
+        return listProductsByIdsUseCase.execute(ids)
+                .stream()
+                .map(this::toProductSummaryResponse)
+                .collect(Collectors.toList());
+    }
+
     private ProductResponse toProductResponse(RegisterProductResult result) {
         return new ProductResponse(
                 result.productId(),
@@ -152,6 +164,16 @@ public class ProductRestController {
     }
 
     private ProductSummaryResponse toProductSummaryResponse(ListProductsResult result) {
+        return new ProductSummaryResponse(
+                result.productId(),
+                result.productName(),
+                result.price(),
+                result.currency(),
+                result.productStatus()
+        );
+    }
+
+    private ProductSummaryResponse toProductSummaryResponse(ListProductsByIdsResult result) {
         return new ProductSummaryResponse(
                 result.productId(),
                 result.productName(),

@@ -1,6 +1,7 @@
 package dev.labs.commerce.product.core.product.application.query;
 
 import dev.labs.commerce.product.core.product.application.usecase.dto.GetProductResult;
+import dev.labs.commerce.product.core.product.application.usecase.dto.ListProductsByIdsResult;
 import dev.labs.commerce.product.core.product.application.usecase.dto.ListProductsResult;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
@@ -58,5 +59,18 @@ public class ProductQueryService {
                         p.getProductStatus()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public List<ListProductsByIdsResult> listProductsByIds(List<Long> productIds) {
+        return productRepository.findAllByProductIdIn(productIds)
+                .stream()
+                .map(p -> new ListProductsByIdsResult(
+                        p.getProductId(),
+                        p.getProductName(),
+                        p.getPrice(),
+                        p.getCurrency(),
+                        p.getProductStatus()
+                ))
+                .toList();
     }
 }
