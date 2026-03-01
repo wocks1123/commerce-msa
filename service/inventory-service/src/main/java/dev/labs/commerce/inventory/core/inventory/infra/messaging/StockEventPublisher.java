@@ -1,0 +1,46 @@
+package dev.labs.commerce.inventory.core.inventory.infra.messaging;
+
+import dev.labs.commerce.common.event.EventEnvelope;
+import dev.labs.commerce.inventory.core.inventory.domain.event.StockDeductedEvent;
+import dev.labs.commerce.inventory.core.inventory.domain.event.StockDeductionFailedEvent;
+import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.StockDeductedKafkaEvent;
+import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.StockDeductionFailedKafkaEvent;
+import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+@Component
+@RequiredArgsConstructor
+public class StockEventPublisher {
+
+    private static final String TOPIC_STOCK_DEDUCTED = "stock.deducted";
+    private static final String TOPIC_STOCK_DEDUCTION_FAILED = "stock.deduction-failed";
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onStockDeducted(StockDeductedEvent event) {
+        var payload = new StockDeductedKafkaEvent(
+                event.productId(),
+                event.orderId(),
+                event.quantity(),
+                event.remainingQuantity()
+        );
+        kafkaTemplate.send(TOPIC_STOCK_DEDUCTED, String.valueOf(event.orderId()),
+                EventEnvelope.of(payload, StockDeductedKafkaEvent.class));
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void onStockDeductionFailed(StockDeductionFailedEvent event) {
+        var payload = new StockDeductionFailedKafkaEvent(
+                event.productId(),
+                event.orderId(),
+                event.quantity(),
+                event.errorCode()
+        );
+        kafkaTemplate.send(TOPIC_STOCK_DEDUCTION_FAILED, String.valueOf(event.orderId()),
+                EventEnvelope.of(payload, StockDeductionFailedKafkaEvent.class));
+    }
+}
