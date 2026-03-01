@@ -1,0 +1,18 @@
+###### Variables
+### Base URL
+@BASE_URL = http://localhost:20104
+#################################################
+
+### Initialize payment
+POST {{BASE_URL}}/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": "ORDER-001",
+  "customerId": 1,
+  "amount": 50000,
+  "currency": "KRW",
+  "idempotencyKey": "idem-key-001",
+  "pgProvider": "MOCK_PAY",
+  "requestedAt": "2026-03-01T10:00:00Z"
+}

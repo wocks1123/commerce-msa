@@ -29,3 +29,15 @@ spring:
         payment-approved-out-0:
           destination: payment-approved
           content-type: application/json
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
