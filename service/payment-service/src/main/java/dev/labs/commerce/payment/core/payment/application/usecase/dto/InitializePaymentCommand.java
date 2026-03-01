@@ -1,5 +1,7 @@
 package dev.labs.commerce.payment.core.payment.application.usecase.dto;
 
+import dev.labs.commerce.payment.core.payment.domain.PgProvider;
+
 import java.time.Instant;
 
 public record InitializePaymentCommand(
@@ -8,7 +10,7 @@ public record InitializePaymentCommand(
         long amount,
         String currency,
         String idempotencyKey,
-        String pgProvider,
+        PgProvider pgProvider,
         Instant requestedAt
 ) {
 }

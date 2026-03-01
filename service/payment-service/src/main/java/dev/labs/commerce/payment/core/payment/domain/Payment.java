@@ -1,12 +1,12 @@
 package dev.labs.commerce.payment.core.payment.domain;
 
 import dev.labs.commerce.common.entity.BaseEntity;
+import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
-import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -41,8 +41,9 @@ public class Payment extends BaseEntity {
     @Column(name = "idempotency_key", nullable = false, updatable = false, length = 80)
     private String idempotencyKey;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "pg_provider", nullable = false, updatable = false, length = 30)
-    private String pgProvider;
+    private PgProvider pgProvider;
 
     @Column(name = "pg_tx_id", length = 100)
     private String pgTxId;
@@ -70,11 +71,11 @@ public class Payment extends BaseEntity {
     private long version;
 
     public static Payment create(String orderId, long customerId, long amount, String currency,
-                                 String idempotencyKey, String pgProvider, Instant requestedAt) {
+                                 String idempotencyKey, PgProvider pgProvider, Instant requestedAt) {
         Assert.hasText(orderId, "orderId must not be blank");
         Assert.hasText(currency, "currency must not be blank");
         Assert.hasText(idempotencyKey, "idempotencyKey must not be blank");
-        Assert.hasText(pgProvider, "pgProvider must not be blank");
+        Assert.notNull(pgProvider, "pgProvider must not be null");
         Assert.isTrue(amount >= 0, "amount must be non-negative");
         Assert.notNull(requestedAt, "requestedAt must not be null");
 
@@ -92,11 +93,11 @@ public class Payment extends BaseEntity {
     }
 
     public static Payment createApproved(String orderId, long customerId, long amount, String currency,
-                                         String idempotencyKey, String pgProvider, String pgTxId, Instant approvedAt) {
+                                         String idempotencyKey, PgProvider pgProvider, String pgTxId, Instant approvedAt) {
         Assert.hasText(orderId, "orderId must not be blank");
         Assert.hasText(currency, "currency must not be blank");
         Assert.hasText(idempotencyKey, "idempotencyKey must not be blank");
-        Assert.hasText(pgProvider, "pgProvider must not be blank");
+        Assert.notNull(pgProvider, "pgProvider must not be null");
         Assert.hasText(pgTxId, "pgTxId must not be blank");
         Assert.isTrue(amount >= 0, "amount must be non-negative");
         Assert.notNull(approvedAt, "approvedAt must not be null");
