@@ -31,11 +31,15 @@ public class ApprovePaymentUseCase {
     private final PaymentEventPublisher eventPublisher;
 
     public ApprovePaymentResult execute(ApprovePaymentCommand command) {
-        Payment payment = paymentRepository.findById(command.paymentId())
-                .orElseThrow(() -> new PaymentNotFoundException(command.paymentId()));
+        Payment payment = paymentRepository.findByOrderId(command.orderId())
+                .orElseThrow(() -> new PaymentNotFoundException(command.orderId()));
 
         if (payment.getStatus() != PaymentStatus.REQUESTED) {
             throw new PaymentInvalidStatusException(payment.getStatus(), PaymentStatus.REQUESTED);
+        }
+
+        if (command.paymentAmount() != payment.getAmount()) {
+            throw new PaymentAmountMismatchException(payment.getAmount(), command.paymentAmount());
         }
 
         PgApprovalResult pgResult = pgGatewayRouter.route(PgProvider.MOCK_PAY)
