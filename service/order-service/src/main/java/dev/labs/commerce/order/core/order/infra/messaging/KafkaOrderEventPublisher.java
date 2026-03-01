@@ -1,0 +1,34 @@
+package dev.labs.commerce.order.core.order.infra.messaging;
+
+import dev.labs.commerce.common.event.EventEnvelope;
+import dev.labs.commerce.common.event.EventPublisher;
+import dev.labs.commerce.order.core.order.application.event.OrderEventPublisher;
+import dev.labs.commerce.order.core.order.domain.event.OrderCreatedEvent;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+@Component
+@RequiredArgsConstructor
+public class KafkaOrderEventPublisher implements OrderEventPublisher {
+
+    private static final String ORDER_CREATED_BINDING = "order-created-out-0";
+
+    private final EventPublisher eventPublisher;
+
+    @Override
+    public void publishOrderCreated(OrderCreatedEvent event) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        ORDER_CREATED_BINDING,
+                        event.orderId(),
+                        EventEnvelope.of(event, OrderCreatedEvent.class)
+                );
+            }
+        });
+    }
+
+}

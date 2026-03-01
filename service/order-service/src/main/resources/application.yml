@@ -20,6 +20,16 @@ spring:
     hibernate:
       ddl-auto: update
 
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:20023
+      bindings:
+        order-created-out-0:
+          destination: order
+          content-type: application/json
+
 service:
   client:
     product:
