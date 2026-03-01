@@ -1,0 +1,16 @@
+###### Variables
+### Base URL
+@BASE_URL = http://localhost:20104
+### PG 거래 고유번호
+@pgTxId = mockpay_tx_abc123
+### 주문번호
+@orderId = ORDER-001
+### 결제 금액
+@amount = 50000
+#################################################
+
+### Mock pay success callback
+GET {{BASE_URL}}/api/v1/payments/mock-pay/success?pgTxId={{pgTxId}}&orderId={{orderId}}&amount={{amount}}
+
+### Mock pay fail callback
+GET {{BASE_URL}}/api/v1/payments/mock-pay/fail?orderId={{orderId}}&failureCode=PAY_DECLINED&failureMessage=잔액이 부족합니다
