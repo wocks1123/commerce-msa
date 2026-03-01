@@ -90,6 +90,31 @@ public class Payment extends BaseEntity {
         return payment;
     }
 
+    public static Payment createApproved(String orderId, long customerId, long amount, String currency,
+                                         String idempotencyKey, String pgProvider, String pgTxId, Instant approvedAt) {
+        Assert.hasText(orderId, "orderId must not be blank");
+        Assert.hasText(currency, "currency must not be blank");
+        Assert.hasText(idempotencyKey, "idempotencyKey must not be blank");
+        Assert.hasText(pgProvider, "pgProvider must not be blank");
+        Assert.hasText(pgTxId, "pgTxId must not be blank");
+        Assert.isTrue(amount >= 0, "amount must be non-negative");
+        Assert.notNull(approvedAt, "approvedAt must not be null");
+
+        Payment payment = new Payment();
+        payment.paymentId = UUID.randomUUID().toString();
+        payment.orderId = orderId;
+        payment.customerId = customerId;
+        payment.status = PaymentStatus.APPROVED;
+        payment.amount = amount;
+        payment.currency = currency;
+        payment.idempotencyKey = idempotencyKey;
+        payment.pgProvider = pgProvider;
+        payment.pgTxId = pgTxId;
+        payment.requestedAt = approvedAt;
+        payment.approvedAt = approvedAt;
+        return payment;
+    }
+
     public void approve(String pgTxId, Instant approvedAt) {
         Assert.hasText(pgTxId, "pgTxId must not be blank");
         Assert.state(this.status == PaymentStatus.REQUESTED, "Payment must be REQUESTED to approve");
