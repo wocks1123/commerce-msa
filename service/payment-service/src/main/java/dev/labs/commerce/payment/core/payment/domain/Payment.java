@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -117,8 +118,10 @@ public class Payment extends BaseEntity {
 
     public void approve(String pgTxId, Instant approvedAt) {
         Assert.hasText(pgTxId, "pgTxId must not be blank");
-        Assert.state(this.status == PaymentStatus.REQUESTED, "Payment must be REQUESTED to approve");
         Assert.notNull(approvedAt, "approvedAt must not be null");
+        if (this.status != PaymentStatus.REQUESTED) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED);
+        }
         this.status = PaymentStatus.APPROVED;
         this.pgTxId = pgTxId;
         this.approvedAt = approvedAt;
@@ -126,8 +129,10 @@ public class Payment extends BaseEntity {
 
     public void fail(String failureCode, @Nullable String failureMessage, Instant failedAt) {
         Assert.hasText(failureCode, "failureCode must not be blank");
-        Assert.state(this.status == PaymentStatus.REQUESTED, "Payment must be REQUESTED to fail");
         Assert.notNull(failedAt, "failedAt must not be null");
+        if (this.status != PaymentStatus.REQUESTED) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED);
+        }
         this.status = PaymentStatus.FAILED;
         this.failureCode = failureCode;
         this.failureMessage = failureMessage;
@@ -135,7 +140,9 @@ public class Payment extends BaseEntity {
     }
 
     public void cancel(Instant canceledAt) {
-        Assert.state(this.status == PaymentStatus.APPROVED, "Payment must be APPROVED to cancel");
+        if (this.status != PaymentStatus.APPROVED) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.APPROVED);
+        }
         this.status = PaymentStatus.CANCELED;
         this.canceledAt = canceledAt;
     }

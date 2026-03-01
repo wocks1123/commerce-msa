@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
 
-    PAYMENT_ALREADY_EXISTS("PAYMENT_ALREADY_EXISTS", "이미 처리된 결제 요청입니다.");
+    PAYMENT_ALREADY_EXISTS("PAYMENT_ALREADY_EXISTS", "Payment request has already been processed."),
+    PAYMENT_INVALID_STATUS("PAYMENT_INVALID_STATUS", "Operation not allowed in the current payment status.");
 
     private final String code;
     private final String message;
