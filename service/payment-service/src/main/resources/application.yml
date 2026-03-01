@@ -19,3 +19,13 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:20023
+      bindings:
+        payment-approved-out-0:
+          destination: payment-approved
+          content-type: application/json
