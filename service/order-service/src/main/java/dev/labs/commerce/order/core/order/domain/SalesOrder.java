@@ -53,7 +53,7 @@ public class SalesOrder extends BaseEntity {
         order.orderId = UUID.randomUUID().toString();
         order.customerId = customerId;
         order.currency = currency;
-        order.status = OrderStatus.CREATED;
+        order.status = OrderStatus.PENDING;
         order.items = new ArrayList<>(items);
         order.totalPrice = items.stream().mapToLong(OrderItem::getLineAmount).sum();
         order.totalAmount = items.stream().mapToLong(OrderItem::getQuantity).sum();
