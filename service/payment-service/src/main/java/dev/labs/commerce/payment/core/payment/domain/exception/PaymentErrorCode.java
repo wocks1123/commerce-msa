@@ -12,7 +12,8 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_INVALID_STATUS("PAYMENT_INVALID_STATUS", "Operation not allowed in the current payment status."),
     PAYMENT_NOT_FOUND("PAYMENT_NOT_FOUND", "Payment not found."),
     PAYMENT_APPROVAL_FAILED("PAYMENT_APPROVAL_FAILED", "Payment approval failed by PG."),
-    PAYMENT_AMOUNT_MISMATCH("PAYMENT_AMOUNT_MISMATCH", "Approved amount does not match the requested amount.");
+    PAYMENT_AMOUNT_MISMATCH("PAYMENT_AMOUNT_MISMATCH", "Approved amount does not match the requested amount."),
+    PAYMENT_ORDER_MISMATCH("PAYMENT_ORDER_MISMATCH", "Order ID does not match the payment record.");
 
     private final String code;
     private final String message;
