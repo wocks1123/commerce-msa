@@ -28,7 +28,7 @@ public class StockEventPublisher {
                 event.quantity(),
                 event.remainingQuantity()
         );
-        kafkaTemplate.send(TOPIC_STOCK_DEDUCTED, String.valueOf(event.orderId()),
+        kafkaTemplate.send(TOPIC_STOCK_DEDUCTED, event.orderId(),
                 EventEnvelope.of(payload, StockDeductedKafkaEvent.class));
     }
 
@@ -40,7 +40,7 @@ public class StockEventPublisher {
                 event.quantity(),
                 event.errorCode()
         );
-        kafkaTemplate.send(TOPIC_STOCK_DEDUCTION_FAILED, String.valueOf(event.orderId()),
+        kafkaTemplate.send(TOPIC_STOCK_DEDUCTION_FAILED, event.orderId(),
                 EventEnvelope.of(payload, StockDeductionFailedKafkaEvent.class));
     }
 }

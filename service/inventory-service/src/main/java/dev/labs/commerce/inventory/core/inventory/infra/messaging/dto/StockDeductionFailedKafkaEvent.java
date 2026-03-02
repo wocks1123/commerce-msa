@@ -2,7 +2,7 @@ package dev.labs.commerce.inventory.core.inventory.infra.messaging.dto;
 
 public record StockDeductionFailedKafkaEvent(
         Long productId,
-        Long orderId,
+        String orderId,
         int quantity,
         String errorCode
 ) {

@@ -27,7 +27,7 @@ public class InventoryEventsConsumer {
         return envelope -> {
             StockDeductedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), StockDeductedKafkaEvent.class);
             log.info("Received StockDeductedEvent: orderId={}, productId={}", event.orderId(), event.productId());
-            confirmStockDeductedUseCase.execute(new ConfirmStockDeductedCommand(String.valueOf(event.orderId())));
+            confirmStockDeductedUseCase.execute(new ConfirmStockDeductedCommand(event.orderId()));
         };
     }
 
@@ -40,7 +40,7 @@ public class InventoryEventsConsumer {
             StockDeductionFailedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), StockDeductionFailedKafkaEvent.class);
             log.info("Received StockDeductionFailedEvent: orderId={}, productId={}, errorCode={}",
                     event.orderId(), event.productId(), event.errorCode());
-            cancelOrderByStockFailureUseCase.execute(new CancelOrderByStockFailureCommand(String.valueOf(event.orderId())));
+            cancelOrderByStockFailureUseCase.execute(new CancelOrderByStockFailureCommand(event.orderId()));
         };
     }
 }
