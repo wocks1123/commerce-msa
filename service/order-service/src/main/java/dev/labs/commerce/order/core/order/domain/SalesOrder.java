@@ -45,6 +45,16 @@ public class SalesOrder extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private List<OrderItem> items = new ArrayList<>();
 
+    public void confirmStockDeducted() {
+        Assert.state(this.status == OrderStatus.PENDING, "Cannot confirm stock deducted. Current status: " + this.status);
+        this.status = OrderStatus.PAYMENT_PENDING;
+    }
+
+    public void cancelByStockFailure() {
+        Assert.state(this.status == OrderStatus.PENDING, "Cannot cancel by stock failure. Current status: " + this.status);
+        this.status = OrderStatus.CANCELLED;
+    }
+
     public static SalesOrder create(long customerId, String currency, List<OrderItem> items) {
         Assert.notEmpty(items, "items must not be empty");
         Assert.hasText(currency, "currency must not be blank");
