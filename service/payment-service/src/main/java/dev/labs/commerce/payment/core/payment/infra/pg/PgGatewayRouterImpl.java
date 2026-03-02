@@ -12,12 +12,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 class PgGatewayRouterImpl implements PgGatewayRouter {
 
-    private final Map<PgProvider, PgGateway> gateways;
+    private final Map<String, PgGateway> gateways;
 
 
     @Override
     public PgGateway route(PgProvider pgProvider) {
-        return gateways.get(pgProvider);
+        return gateways.get(pgProvider.name());
     }
 
 }
