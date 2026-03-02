@@ -7,6 +7,8 @@ import dev.labs.commerce.payment.core.payment.domain.event.PaymentApprovedEvent;
 import dev.labs.commerce.payment.core.payment.domain.event.PaymentFailedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Component
 @RequiredArgsConstructor
@@ -19,19 +21,29 @@ public class KafkaPaymentEventPublisher implements PaymentEventPublisher {
 
     @Override
     public void publishPaymentApproved(PaymentApprovedEvent event) {
-        eventPublisher.publish(
-                PAYMENT_APPROVED_BINDING,
-                event.paymentId(),
-                EventEnvelope.of(event, PaymentApprovedEvent.class)
-        );
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        PAYMENT_APPROVED_BINDING,
+                        event.paymentId(),
+                        EventEnvelope.of(event, PaymentApprovedEvent.class)
+                );
+            }
+        });
     }
 
     @Override
     public void publishPaymentFailed(PaymentFailedEvent event) {
-        eventPublisher.publish(
-                PAYMENT_FAILED_BINDING,
-                event.paymentId(),
-                EventEnvelope.of(event, PaymentFailedEvent.class)
-        );
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        PAYMENT_FAILED_BINDING,
+                        event.paymentId(),
+                        EventEnvelope.of(event, PaymentFailedEvent.class)
+                );
+            }
+        });
     }
 }
