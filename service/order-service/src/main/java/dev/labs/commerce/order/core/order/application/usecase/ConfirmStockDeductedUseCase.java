@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -18,6 +20,6 @@ public class ConfirmStockDeductedUseCase {
     public void execute(ConfirmStockDeductedCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
-        order.confirmStockDeducted();
+        order.confirmStockDeducted(Instant.now());
     }
 }

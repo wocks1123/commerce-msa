@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 public enum OrderErrorCode implements ErrorCode {
 
     ORDER_NOT_FOUND("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다."),
+    INVALID_ORDER_STATE("INVALID_ORDER_STATE", "현재 주문 상태에서 허용되지 않는 작업입니다."),
     PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다."),
     PRODUCT_NOT_ACTIVE("PRODUCT_NOT_ACTIVE", "주문 가능한 상태의 상품이 아닙니다."),
     LINE_AMOUNT_MISMATCH("LINE_AMOUNT_MISMATCH", "상품 금액 정보가 일치하지 않습니다."),

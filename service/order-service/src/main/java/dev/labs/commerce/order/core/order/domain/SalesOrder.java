@@ -1,12 +1,14 @@
 package dev.labs.commerce.order.core.order.domain;
 
 import dev.labs.commerce.common.entity.BaseEntity;
+import dev.labs.commerce.order.core.order.domain.error.InvalidOrderStateException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,15 +47,18 @@ public class SalesOrder extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private List<OrderItem> items = new ArrayList<>();
 
-    public void confirmStockDeducted() {
-        Assert.state(this.status == OrderStatus.PENDING, "Cannot confirm stock deducted. Current status: " + this.status);
-        this.status = OrderStatus.PAYMENT_PENDING;
-    }
+    @Column(name = "payment_pending_at")
+    private Instant paymentPendingAt;
 
-    public void cancelByStockFailure() {
-        Assert.state(this.status == OrderStatus.PENDING, "Cannot cancel by stock failure. Current status: " + this.status);
-        this.status = OrderStatus.CANCELLED;
-    }
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    @Column(name = "failed_at")
+    private Instant failedAt;
+
 
     public static SalesOrder create(long customerId, String currency, List<OrderItem> items) {
         Assert.notEmpty(items, "items must not be empty");
@@ -68,6 +73,35 @@ public class SalesOrder extends BaseEntity {
         order.totalPrice = items.stream().mapToLong(OrderItem::getLineAmount).sum();
         order.totalAmount = items.stream().mapToLong(OrderItem::getQuantity).sum();
         return order;
+    }
+
+    public void confirmStockDeducted(Instant paymentPendingAt) {
+        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        this.status = OrderStatus.PAYMENT_PENDING;
+        this.paymentPendingAt = paymentPendingAt;
+    }
+
+    public void cancelByStockFailure(Instant cancelledAt) {
+        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        this.status = OrderStatus.CANCELLED;
+        this.cancelledAt = cancelledAt;
+    }
+
+    public void confirmPaid(Instant paidAt) {
+        if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
+        this.status = OrderStatus.PAID;
+        this.paidAt = paidAt;
+    }
+
+    public void cancelByPaymentFailure(Instant cancelledAt) {
+        if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
+        this.status = OrderStatus.CANCELLED;
+        this.cancelledAt = cancelledAt;
+    }
+
+    public void markAsFailed(Instant failedAt) {
+        this.status = OrderStatus.FAILED;
+        this.failedAt = failedAt;
     }
 
 }

@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -18,6 +20,6 @@ public class CancelOrderByStockFailureUseCase {
     public void execute(CancelOrderByStockFailureCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
-        order.cancelByStockFailure();
+        order.cancelByStockFailure(Instant.now());
     }
 }
