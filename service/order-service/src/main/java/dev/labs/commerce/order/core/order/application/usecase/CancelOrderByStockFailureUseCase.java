@@ -20,6 +20,6 @@ public class CancelOrderByStockFailureUseCase {
     public void execute(CancelOrderByStockFailureCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
-        order.cancelByStockFailure(Instant.now());
+        order.abortByStockFailure(Instant.now());
     }
 }

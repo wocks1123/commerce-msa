@@ -53,6 +53,9 @@ public class SalesOrder extends BaseEntity {
     @Column(name = "paid_at")
     private Instant paidAt;
 
+    @Column(name = "aborted_at")
+    private Instant abortedAt;
+
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
@@ -81,10 +84,10 @@ public class SalesOrder extends BaseEntity {
         this.paymentPendingAt = paymentPendingAt;
     }
 
-    public void cancelByStockFailure(Instant cancelledAt) {
+    public void abortByStockFailure(Instant abortedAt) {
         if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
-        this.status = OrderStatus.CANCELLED;
-        this.cancelledAt = cancelledAt;
+        this.status = OrderStatus.ABORTED;
+        this.abortedAt = abortedAt;
     }
 
     public void confirmPaid(Instant paidAt) {
@@ -93,7 +96,13 @@ public class SalesOrder extends BaseEntity {
         this.paidAt = paidAt;
     }
 
-    public void cancelByPaymentFailure(Instant cancelledAt) {
+    public void abortByPaymentFailure(Instant abortedAt) {
+        if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
+        this.status = OrderStatus.ABORTED;
+        this.abortedAt = abortedAt;
+    }
+
+    public void cancel(Instant cancelledAt) {
         if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.CANCELLED;
         this.cancelledAt = cancelledAt;

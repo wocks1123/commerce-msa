@@ -1,18 +1,19 @@
 CREATE TABLE IF NOT EXISTS sales_order
 (
-    order_id            VARCHAR(36) PRIMARY KEY,
-    customer_id         BIGINT      NOT NULL,
-    status              VARCHAR(20) NOT NULL,
-    total_price         BIGINT      NOT NULL,
-    total_amount        BIGINT      NOT NULL,
-    currency            VARCHAR(3)  NOT NULL,
-    version             BIGINT      NOT NULL,
-    payment_pending_at  TIMESTAMPTZ,
-    paid_at             TIMESTAMPTZ,
-    cancelled_at        TIMESTAMPTZ,
-    failed_at           TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ NOT NULL,
-    updated_at          TIMESTAMPTZ NOT NULL
+    order_id           VARCHAR(36) PRIMARY KEY,
+    customer_id        BIGINT      NOT NULL,
+    status             VARCHAR(20) NOT NULL,
+    total_price        BIGINT      NOT NULL,
+    total_amount       BIGINT      NOT NULL,
+    currency           VARCHAR(3)  NOT NULL,
+    version            BIGINT      NOT NULL,
+    payment_pending_at TIMESTAMPTZ,
+    paid_at            TIMESTAMPTZ,
+    aborted_at         TIMESTAMPTZ,
+    cancelled_at       TIMESTAMPTZ,
+    failed_at          TIMESTAMPTZ,
+    created_at         TIMESTAMPTZ NOT NULL,
+    updated_at         TIMESTAMPTZ NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_sales_order_customer_id_created_at
