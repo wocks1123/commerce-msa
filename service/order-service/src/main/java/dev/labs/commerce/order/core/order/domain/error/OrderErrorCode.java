@@ -8,15 +8,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
 
-    ORDER_NOT_FOUND("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다."),
-    INVALID_ORDER_STATE("INVALID_ORDER_STATE", "현재 주문 상태에서 허용되지 않는 작업입니다."),
-    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다."),
-    PRODUCT_NOT_ACTIVE("PRODUCT_NOT_ACTIVE", "주문 가능한 상태의 상품이 아닙니다."),
-    LINE_AMOUNT_MISMATCH("LINE_AMOUNT_MISMATCH", "상품 금액 정보가 일치하지 않습니다."),
-    TOTAL_PRICE_MISMATCH("TOTAL_PRICE_MISMATCH", "주문 총 금액 정보가 일치하지 않습니다."),
-    TOTAL_AMOUNT_MISMATCH("TOTAL_AMOUNT_MISMATCH", "주문 총 수량 정보가 일치하지 않습니다."),
-    CUSTOMER_ID_MISMATCH("CUSTOMER_ID_MISMATCH", "주문 고객 정보가 일치하지 않습니다."),
-    CURRENCY_MISMATCH("CURRENCY_MISMATCH", "주문 통화 정보가 일치하지 않습니다."),
+    ORDER_NOT_FOUND("ORDER_NOT_FOUND", "Order not found."),
+    INVALID_ORDER_STATE("INVALID_ORDER_STATE", "Operation not allowed in the current order state."),
+    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "Product not found."),
+    PRODUCT_NOT_ACTIVE("PRODUCT_NOT_ACTIVE", "Product is not available for ordering."),
+    LINE_AMOUNT_MISMATCH("LINE_AMOUNT_MISMATCH", "Line amount does not match."),
+    TOTAL_PRICE_MISMATCH("TOTAL_PRICE_MISMATCH", "Total price does not match."),
+    TOTAL_AMOUNT_MISMATCH("TOTAL_AMOUNT_MISMATCH", "Total amount does not match."),
+    CUSTOMER_ID_MISMATCH("CUSTOMER_ID_MISMATCH", "Customer does not match the order."),
+    CURRENCY_MISMATCH("CURRENCY_MISMATCH", "Currency does not match the order."),
     PRODUCT_SERVICE_UNAVAILABLE("PRODUCT_SERVICE_UNAVAILABLE", "Product service is unavailable."),
     PRODUCT_SERVICE_TIMEOUT("PRODUCT_SERVICE_TIMEOUT", "Product service request timed out.");
 
