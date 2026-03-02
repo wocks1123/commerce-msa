@@ -5,12 +5,14 @@ import dev.labs.commerce.payment.core.payment.application.port.dto.PgApprovalCom
 import dev.labs.commerce.payment.core.payment.application.port.dto.PgApprovalResult;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+
 @Component("MOCK_PAY")
 public class MockPgGateway implements PgGateway {
 
     @Override
     public PgApprovalResult approve(PgApprovalCommand command) {
-        return null;
+        return PgApprovalResult.success(command.pgTxId(), command.amount(), Instant.now());
     }
 
 }
