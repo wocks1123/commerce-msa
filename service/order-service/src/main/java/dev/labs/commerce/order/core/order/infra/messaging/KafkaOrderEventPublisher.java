@@ -3,6 +3,7 @@ package dev.labs.commerce.order.core.order.infra.messaging;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPublisher;
 import dev.labs.commerce.order.core.order.application.event.OrderEventPublisher;
+import dev.labs.commerce.order.core.order.domain.event.OrderAbortedEvent;
 import dev.labs.commerce.order.core.order.domain.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class KafkaOrderEventPublisher implements OrderEventPublisher {
 
     private static final String ORDER_CREATED_BINDING = "order-created-out-0";
+    private static final String ORDER_ABORTED_BINDING = "order-aborted-out-0";
 
     private final EventPublisher eventPublisher;
 
@@ -26,6 +28,20 @@ public class KafkaOrderEventPublisher implements OrderEventPublisher {
                         ORDER_CREATED_BINDING,
                         event.orderId(),
                         EventEnvelope.of(event, OrderCreatedEvent.class)
+                );
+            }
+        });
+    }
+
+    @Override
+    public void publishOrderAborted(OrderAbortedEvent event) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        ORDER_ABORTED_BINDING,
+                        event.orderId(),
+                        EventEnvelope.of(event, OrderAbortedEvent.class)
                 );
             }
         });

@@ -31,6 +31,9 @@ spring:
         order-created-out-0:
           destination: order
           content-type: application/json
+        order-aborted-out-0:
+          destination: order.aborted
+          content-type: application/json
         onStockDeducted-in-0:
           destination: stock.deducted
           group: order-service
