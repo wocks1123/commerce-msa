@@ -18,8 +18,18 @@ services:
       -c log_statement=all
       -c logging_collector=on
       -c log_destination=stderr
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d commerce" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     volumes:
       - ./pg_log:/logs/pg_log
+      - ./initdb:/docker-entrypoint-initdb.d
+      - ../service/order-service/src/main/resources/db/migration:/migrations/order
+      - ../service/product-service/src/main/resources/db/migration:/migrations/product
+      - ../service/inventory-service/src/main/resources/db/migration:/migrations/inventory
+      - ../service/payment-service/src/main/resources/db/migration:/migrations/payment
   redis:
     image: redis:7
     container_name: commerce-redis
