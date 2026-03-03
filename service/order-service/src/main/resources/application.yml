@@ -29,7 +29,7 @@ spring:
           brokers: localhost:20023
       bindings:
         order-created-out-0:
-          destination: order
+          destination: order.created
           content-type: application/json
         order-aborted-out-0:
           destination: order.aborted

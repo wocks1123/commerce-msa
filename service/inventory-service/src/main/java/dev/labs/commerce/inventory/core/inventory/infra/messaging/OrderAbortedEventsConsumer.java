@@ -22,22 +22,15 @@ public class OrderAbortedEventsConsumer {
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
-            String type = envelope.meta().eventType();
-
-            switch (type) {
-                case "OrderAbortedEvent" -> {
-                    OrderAbortedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), OrderAbortedKafkaEvent.class);
-                    log.info("Received OrderAbortedEvent: orderId={}, itemCount={}", event.orderId(), event.items().size());
-                    event.items().forEach(item ->
-                            restoreInventoryQuantityUseCase.execute(new RestoreInventoryQuantityCommand(
-                                    item.productId(),
-                                    event.orderId(),
-                                    item.quantity()
-                            ))
-                    );
-                }
-                default -> log.warn("Unhandled event type: {}", type);
-            }
+            OrderAbortedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), OrderAbortedKafkaEvent.class);
+            log.info("Received OrderAbortedEvent: orderId={}, itemCount={}", event.orderId(), event.items().size());
+            event.items().forEach(item ->
+                    restoreInventoryQuantityUseCase.execute(new RestoreInventoryQuantityCommand(
+                            item.productId(),
+                            event.orderId(),
+                            item.quantity()
+                    ))
+            );
         };
     }
 }

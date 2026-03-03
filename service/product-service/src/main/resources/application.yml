@@ -27,7 +27,7 @@ spring:
           brokers: localhost:20023
       bindings:
         product-registered-out-0:
-          destination: product
+          destination: product.registered
           content-type: application/json
 
 springdoc:

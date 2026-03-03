@@ -22,15 +22,9 @@ public class ProductEventsConsumer {
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
-            String type = envelope.meta().eventType();
-
-            switch (type) {
-                case "ProductRegisteredEvent" -> {
-                    ProductRegisteredEvent event = eventPayloadConverter.convert(envelope.payload(), ProductRegisteredEvent.class);
-                    registerInventoryUseCase.execute(new RegisterInventoryCommand(event.productId()));
-                }
-                default -> log.warn("Unhandled event type: {}", type);
-            }
+            ProductRegisteredEvent event = eventPayloadConverter.convert(envelope.payload(), ProductRegisteredEvent.class);
+            log.info("Received ProductRegisteredEvent: productId={}", event.productId());
+            registerInventoryUseCase.execute(new RegisterInventoryCommand(event.productId()));
         };
     }
 }

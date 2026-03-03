@@ -22,22 +22,15 @@ public class OrderEventsConsumer {
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
-            String type = envelope.meta().eventType();
-
-            switch (type) {
-                case "OrderCreatedEvent" -> {
-                    OrderCreatedEvent event = eventPayloadConverter.convert(envelope.payload(), OrderCreatedEvent.class);
-                    log.info("Received OrderCreatedEvent: orderId={}, itemCount={}", event.orderId(), event.items().size());
-                    event.items().forEach(item ->
-                            decreaseInventoryQuantityUseCase.execute(new DecreaseInventoryQuantityCommand(
-                                    item.productId(),
-                                    event.orderId(),
-                                    item.quantity()
-                            ))
-                    );
-                }
-                default -> log.warn("Unhandled event type: {}", type);
-            }
+            OrderCreatedEvent event = eventPayloadConverter.convert(envelope.payload(), OrderCreatedEvent.class);
+            log.info("Received OrderCreatedEvent: orderId={}, itemCount={}", event.orderId(), event.items().size());
+            event.items().forEach(item ->
+                    decreaseInventoryQuantityUseCase.execute(new DecreaseInventoryQuantityCommand(
+                            item.productId(),
+                            event.orderId(),
+                            item.quantity()
+                    ))
+            );
         };
     }
 }
