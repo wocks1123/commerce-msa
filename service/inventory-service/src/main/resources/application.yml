@@ -22,7 +22,7 @@ spring:
 
   cloud:
     function:
-      definition: onProductEvents;onOrderEvents
+      definition: onProductEvents;onOrderEvents;onOrderAbortedEvents
     stream:
       kafka:
         binder:
@@ -34,6 +34,10 @@ spring:
           content-type: application/json
         onOrderEvents-in-0:
           destination: order
+          group: inventory-service
+          content-type: application/json
+        onOrderAbortedEvents-in-0:
+          destination: order.aborted
           group: inventory-service
           content-type: application/json
 
