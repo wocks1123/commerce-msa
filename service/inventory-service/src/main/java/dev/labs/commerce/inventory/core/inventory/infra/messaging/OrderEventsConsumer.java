@@ -3,8 +3,8 @@ package dev.labs.commerce.inventory.core.inventory.infra.messaging;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
-import dev.labs.commerce.inventory.core.inventory.application.usecase.DecreaseInventoryQuantityUseCase;
-import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseInventoryQuantityCommand;
+import dev.labs.commerce.inventory.core.inventory.application.usecase.DecreaseOrderInventoryUseCase;
+import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseOrderInventoryCommand;
 import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.OrderCreatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -18,19 +18,20 @@ public class OrderEventsConsumer {
 
     @Bean
     public Consumer<EventEnvelope<JsonNode>> onOrderEvents(
-            DecreaseInventoryQuantityUseCase decreaseInventoryQuantityUseCase,
+            DecreaseOrderInventoryUseCase decreaseOrderInventoryUseCase,
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
             OrderCreatedEvent event = eventPayloadConverter.convert(envelope.payload(), OrderCreatedEvent.class);
             log.info("Received OrderCreatedEvent: orderId={}, itemCount={}", event.orderId(), event.items().size());
-            event.items().forEach(item ->
-                    decreaseInventoryQuantityUseCase.execute(new DecreaseInventoryQuantityCommand(
-                            item.productId(),
-                            event.orderId(),
-                            item.quantity()
-                    ))
+
+            var command = new DecreaseOrderInventoryCommand(
+                    event.orderId(),
+                    event.items().stream()
+                            .map(item -> new DecreaseOrderInventoryCommand.Item(item.productId(), item.quantity()))
+                            .toList()
             );
+            decreaseOrderInventoryUseCase.execute(command);
         };
     }
 }
