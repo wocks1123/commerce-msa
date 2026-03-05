@@ -1,0 +1,91 @@
+###### Variables
+### Base URL
+@PRODUCT_SERVICE_BASE_URL = http://localhost:20101
+@INVENTORY_SERVICE_BASE_URL = http://localhost:20102
+@ORDER_SERVICE_BASE_URL = http://localhost:20103
+@PAYMENT_SERVICE_BASE_URL = http://localhost:20104
+
+
+#################################################
+### Register new product
+POST {{PRODUCT_SERVICE_BASE_URL}}/api/v1/products
+Content-Type: application/json
+
+{
+  "productName": "Premium Wireless Headphones",
+  "price": 199000,
+  "currency": "KRW",
+  "description": "High-quality wireless headphones with noise cancellation"
+}
+
+> {%
+    client.global.set("productId", response.body.productId)
+%}
+
+
+### Change product status
+PATCH {{PRODUCT_SERVICE_BASE_URL}}/api/v1/products/{{productId}}/status
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+
+### Increase inventory stock quantity
+PATCH {{INVENTORY_SERVICE_BASE_URL}}/api/v1/inventories/{{productId}}/quantity
+Content-Type: application/json
+
+{
+  "quantity": 10
+}
+
+
+### Create order
+POST {{ORDER_SERVICE_BASE_URL}}/api/v1/orders
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "currency": "KRW",
+  "totalPrice": 398000,
+  "totalAmount": 2,
+  "items": [
+    {
+      "productId": {{productId}},
+      "unitPrice": 199000,
+      "quantity": 2,
+      "lineAmount": 398000,
+      "currency": "KRW"
+    }
+  ]
+}
+
+> {%
+    client.global.set("orderId", response.body.orderId)
+%}
+
+
+### Initialize payment
+POST {{PAYMENT_SERVICE_BASE_URL}}/api/v1/payments
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "customerId": 1,
+  "amount": 398000,
+  "currency": "KRW",
+  "idempotencyKey": "idem-key-001",
+  "pgProvider": "MOCK_PAY",
+  "requestedAt": "2026-03-01T10:00:00Z"
+}
+
+> {%
+    client.global.set("pgTxId", response.body.idempotencyKey)
+%}
+
+
+### Mock pay success callback
+GET {{PAYMENT_SERVICE_BASE_URL}}/api/v1/payments/mock-pay/success?pgTxId=3&orderId={{orderId}}&
+    amount=398000
+
