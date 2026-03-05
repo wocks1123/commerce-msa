@@ -8,7 +8,7 @@ public record OrderCreatedEvent(
 ) {
     public record OrderItemPayload(
             Long productId,
-            Integer quantity
+            int quantity
     ) {
     }
 }
