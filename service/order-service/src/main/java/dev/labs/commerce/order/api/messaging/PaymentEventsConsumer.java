@@ -1,14 +1,14 @@
-package dev.labs.commerce.order.core.order.infra.messaging;
+package dev.labs.commerce.order.api.messaging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
+import dev.labs.commerce.order.api.messaging.dto.PaymentApprovedKafkaEvent;
+import dev.labs.commerce.order.api.messaging.dto.PaymentFailedKafkaEvent;
 import dev.labs.commerce.order.core.order.application.usecase.AbortOrderByPaymentFailureUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.ConfirmPaidUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.dto.AbortOrderByPaymentFailureCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.ConfirmPaidCommand;
-import dev.labs.commerce.order.core.order.infra.messaging.dto.PaymentApprovedKafkaEvent;
-import dev.labs.commerce.order.core.order.infra.messaging.dto.PaymentFailedKafkaEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

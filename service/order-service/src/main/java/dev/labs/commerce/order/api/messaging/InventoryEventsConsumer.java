@@ -1,14 +1,14 @@
-package dev.labs.commerce.order.core.order.infra.messaging;
+package dev.labs.commerce.order.api.messaging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
+import dev.labs.commerce.order.api.messaging.dto.StockDeductedKafkaEvent;
+import dev.labs.commerce.order.api.messaging.dto.StockDeductionFailedKafkaEvent;
 import dev.labs.commerce.order.core.order.application.usecase.CancelOrderByStockFailureUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.ConfirmStockDeductedUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CancelOrderByStockFailureCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.ConfirmStockDeductedCommand;
-import dev.labs.commerce.order.core.order.infra.messaging.dto.StockDeductedKafkaEvent;
-import dev.labs.commerce.order.core.order.infra.messaging.dto.StockDeductionFailedKafkaEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

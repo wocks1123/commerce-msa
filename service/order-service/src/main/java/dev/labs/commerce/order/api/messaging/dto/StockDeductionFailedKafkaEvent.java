@@ -1,4 +1,4 @@
-package dev.labs.commerce.order.core.order.infra.messaging.dto;
+package dev.labs.commerce.order.api.messaging.dto;
 
 public record StockDeductionFailedKafkaEvent(
         Long productId,
