@@ -1,4 +1,4 @@
-package dev.labs.commerce.product.api.dto;
+package dev.labs.commerce.product.api.http.dto;
 
 import dev.labs.commerce.product.core.product.domain.ProductStatus;
 

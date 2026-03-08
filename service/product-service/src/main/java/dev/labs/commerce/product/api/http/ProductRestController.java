@@ -1,9 +1,9 @@
-package dev.labs.commerce.product.api;
+package dev.labs.commerce.product.api.http;
 
 import dev.labs.commerce.common.web.doc.ApiBadRequestResponse;
 import dev.labs.commerce.common.web.doc.ApiConflictResponse;
 import dev.labs.commerce.common.web.doc.ApiNotFoundResponse;
-import dev.labs.commerce.product.api.dto.*;
+import dev.labs.commerce.product.api.http.dto.*;
 import dev.labs.commerce.product.core.product.application.usecase.*;
 import dev.labs.commerce.product.core.product.application.usecase.dto.*;
 import dev.labs.commerce.product.core.product.domain.ProductStatus;

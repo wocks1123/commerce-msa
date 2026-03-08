@@ -1,6 +1,6 @@
-package dev.labs.commerce.product.api.dto;
+package dev.labs.commerce.product.api.http.dto;
 
-public record ModifyProductRequest(
+public record RegisterProductRequest(
         String productName,
         Long price,
         String currency,
