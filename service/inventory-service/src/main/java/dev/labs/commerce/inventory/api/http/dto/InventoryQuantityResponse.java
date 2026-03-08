@@ -1,4 +1,4 @@
-package dev.labs.commerce.inventory.api.dto;
+package dev.labs.commerce.inventory.api.http.dto;
 
 public record InventoryQuantityResponse(
         Long productId,
