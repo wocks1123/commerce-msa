@@ -1,9 +1,9 @@
-package dev.labs.commerce.payment.api;
+package dev.labs.commerce.payment.api.http;
 
 import dev.labs.commerce.common.web.doc.ApiBadRequestResponse;
 import dev.labs.commerce.common.web.doc.ApiConflictResponse;
-import dev.labs.commerce.payment.api.dto.InitializePaymentRequest;
-import dev.labs.commerce.payment.api.dto.InitializePaymentResponse;
+import dev.labs.commerce.payment.api.http.dto.InitializePaymentRequest;
+import dev.labs.commerce.payment.api.http.dto.InitializePaymentResponse;
 import dev.labs.commerce.payment.core.payment.application.usecase.InitializePaymentUseCase;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentResult;

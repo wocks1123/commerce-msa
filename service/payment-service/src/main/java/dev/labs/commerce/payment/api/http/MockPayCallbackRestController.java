@@ -1,7 +1,7 @@
-package dev.labs.commerce.payment.api;
+package dev.labs.commerce.payment.api.http;
 
-import dev.labs.commerce.payment.api.dto.MockPayFailResponse;
-import dev.labs.commerce.payment.api.dto.MockPaySuccessResponse;
+import dev.labs.commerce.payment.api.http.dto.MockPayFailResponse;
+import dev.labs.commerce.payment.api.http.dto.MockPaySuccessResponse;
 import dev.labs.commerce.payment.core.payment.application.usecase.ApprovePaymentUseCase;
 import dev.labs.commerce.payment.core.payment.application.usecase.FailPaymentUseCase;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.ApprovePaymentCommand;
@@ -9,7 +9,10 @@ import dev.labs.commerce.payment.core.payment.application.usecase.dto.ApprovePay
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.FailPaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.FailPaymentResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/payments/mock-pay")

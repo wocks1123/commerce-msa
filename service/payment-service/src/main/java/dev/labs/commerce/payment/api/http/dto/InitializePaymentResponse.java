@@ -1,4 +1,4 @@
-package dev.labs.commerce.payment.api.dto;
+package dev.labs.commerce.payment.api.http.dto;
 
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
 
