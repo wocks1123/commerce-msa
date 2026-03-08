@@ -1,13 +1,13 @@
-package dev.labs.commerce.inventory.core.inventory.infra.messaging.dto;
+package dev.labs.commerce.inventory.api.messaging.dto;
 
 import java.util.List;
 
-public record OrderAbortedKafkaEvent(
+public record OrderCreatedEvent(
         String orderId,
         List<OrderItemPayload> items
 ) {
     public record OrderItemPayload(
-            long productId,
+            Long productId,
             int quantity
     ) {
     }

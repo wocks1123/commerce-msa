@@ -1,11 +1,11 @@
-package dev.labs.commerce.inventory.core.inventory.infra.messaging;
+package dev.labs.commerce.inventory.api.messaging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
+import dev.labs.commerce.inventory.api.messaging.dto.OrderCreatedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.DecreaseOrderInventoryUseCase;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseOrderInventoryCommand;
-import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.OrderCreatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

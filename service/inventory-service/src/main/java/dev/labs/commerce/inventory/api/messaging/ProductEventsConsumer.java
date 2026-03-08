@@ -1,11 +1,11 @@
-package dev.labs.commerce.inventory.core.inventory.infra.messaging;
+package dev.labs.commerce.inventory.api.messaging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
+import dev.labs.commerce.inventory.api.messaging.dto.ProductRegisteredEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.RegisterInventoryUseCase;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.RegisterInventoryCommand;
-import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.ProductRegisteredEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
