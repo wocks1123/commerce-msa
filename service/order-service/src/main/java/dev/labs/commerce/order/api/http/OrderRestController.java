@@ -1,19 +1,14 @@
-package dev.labs.commerce.order.api;
+package dev.labs.commerce.order.api.http;
 
-import dev.labs.commerce.order.api.dto.CreateOrderItemRequest;
-import dev.labs.commerce.order.api.dto.CreateOrderRequest;
-import dev.labs.commerce.order.api.dto.CreateOrderResponse;
+import dev.labs.commerce.order.api.http.dto.CreateOrderRequest;
+import dev.labs.commerce.order.api.http.dto.CreateOrderResponse;
 import dev.labs.commerce.order.core.order.application.usecase.CreateOrderUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CreateOrderCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CreateOrderResult;
 import dev.labs.commerce.order.core.order.application.usecase.dto.OrderItemCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

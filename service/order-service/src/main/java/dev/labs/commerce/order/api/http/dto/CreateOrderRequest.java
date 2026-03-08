@@ -1,4 +1,4 @@
-package dev.labs.commerce.order.api.dto;
+package dev.labs.commerce.order.api.http.dto;
 
 import java.util.List;
 
