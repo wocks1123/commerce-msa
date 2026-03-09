@@ -1,6 +1,6 @@
 package dev.labs.commerce.order.api.messaging.dto;
 
-public record StockDeductedKafkaEvent(
+public record StockDeductedEvent(
         Long productId,
         String orderId,
         int quantity,
