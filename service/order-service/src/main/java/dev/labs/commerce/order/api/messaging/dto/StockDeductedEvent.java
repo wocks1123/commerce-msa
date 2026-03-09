@@ -1,8 +1,11 @@
 package dev.labs.commerce.order.api.messaging.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record StockDeductedEvent(
-        Long productId,
-        String orderId,
+        @NotNull Long productId,
+        @NotBlank String orderId,
         int quantity,
         int remainingQuantity
 ) {

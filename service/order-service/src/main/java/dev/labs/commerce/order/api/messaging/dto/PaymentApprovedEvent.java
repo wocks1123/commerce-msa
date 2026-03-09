@@ -1,9 +1,11 @@
 package dev.labs.commerce.order.api.messaging.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record PaymentApprovedEvent(
-        String orderId,
+        @NotBlank String orderId,
         long customerId,
         long amount,
-        String currency
+        @NotBlank String currency
 ) {
 }
