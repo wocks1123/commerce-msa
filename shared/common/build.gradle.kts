@@ -11,6 +11,7 @@ dependencies {
     implementation("io.github.openfeign.querydsl:querydsl-jpa:6.1")
 
     implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 }
 
 tasks.bootJar {
