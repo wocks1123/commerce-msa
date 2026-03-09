@@ -1,7 +1,7 @@
 package dev.labs.commerce.order.core.order.application.event;
 
-import dev.labs.commerce.order.core.order.domain.event.OrderAbortedEvent;
-import dev.labs.commerce.order.core.order.domain.event.OrderCreatedEvent;
+import dev.labs.commerce.order.core.order.application.event.OrderAbortedEvent;
+import dev.labs.commerce.order.core.order.application.event.OrderCreatedEvent;
 
 public interface OrderEventPublisher {
 

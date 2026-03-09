@@ -2,8 +2,8 @@ package dev.labs.commerce.inventory.core.inventory.infra.messaging;
 
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPublisher;
-import dev.labs.commerce.inventory.core.inventory.domain.event.StockDeductedEvent;
-import dev.labs.commerce.inventory.core.inventory.domain.event.StockDeductionFailedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductionFailedEvent;
 import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.StockDeductedKafkaEvent;
 import dev.labs.commerce.inventory.core.inventory.infra.messaging.dto.StockDeductionFailedKafkaEvent;
 import lombok.RequiredArgsConstructor;

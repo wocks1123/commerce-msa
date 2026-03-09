@@ -1,4 +1,4 @@
-package dev.labs.commerce.inventory.core.inventory.domain.event;
+package dev.labs.commerce.inventory.core.inventory.application.event;
 
 public record StockDeductedEvent(
         Long productId,

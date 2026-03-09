@@ -1,4 +1,4 @@
-package dev.labs.commerce.payment.core.payment.domain.event;
+package dev.labs.commerce.payment.core.payment.application.event;
 
 import java.time.Instant;
 

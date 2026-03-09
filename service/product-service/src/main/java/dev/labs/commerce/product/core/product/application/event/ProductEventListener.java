@@ -1,6 +1,6 @@
 package dev.labs.commerce.product.core.product.application.event;
 
-import dev.labs.commerce.product.core.product.domain.event.ProductRegisteredEvent;
+import dev.labs.commerce.product.core.product.application.event.ProductRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

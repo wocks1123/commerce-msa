@@ -1,7 +1,7 @@
 package dev.labs.commerce.payment.core.payment.infra.messaging;
 
 import dev.labs.commerce.payment.core.payment.application.event.PaymentEventPublisher;
-import dev.labs.commerce.payment.core.payment.domain.event.PaymentFailedEvent;
+import dev.labs.commerce.payment.core.payment.application.event.PaymentFailedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

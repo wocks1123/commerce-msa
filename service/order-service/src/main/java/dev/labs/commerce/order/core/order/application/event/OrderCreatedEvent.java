@@ -1,4 +1,4 @@
-package dev.labs.commerce.order.core.order.domain.event;
+package dev.labs.commerce.order.core.order.application.event;
 
 import java.util.List;
 
