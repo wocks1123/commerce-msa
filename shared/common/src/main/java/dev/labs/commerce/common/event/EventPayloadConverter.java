@@ -34,6 +34,12 @@ public class EventPayloadConverter {
             );
         }
 
+        if (converted == null) {
+            throw new EventPayloadConversionException(
+                    String.format("Event payload converted to null for %s", targetClass.getSimpleName())
+            );
+        }
+
         Set<ConstraintViolation<T>> violations = validator.validate(converted);
         if (!violations.isEmpty()) {
             String details = violations.stream()
