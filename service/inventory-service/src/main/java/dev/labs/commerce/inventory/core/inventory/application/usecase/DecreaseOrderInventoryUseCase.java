@@ -9,8 +9,8 @@ import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCod
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryNotFoundException;
 import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductionFailedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockEventPublisher;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class DecreaseOrderInventoryUseCase {
 
     private final InventoryRepository inventoryRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final StockEventPublisher stockEventPublisher;
 
     public DecreaseOrderInventoryResult execute(DecreaseOrderInventoryCommand command) {
         List<DecreaseOrderInventoryResult.ItemResult> results = new ArrayList<>();
@@ -33,7 +33,7 @@ public class DecreaseOrderInventoryUseCase {
             Optional<Inventory> inventoryOpt = inventoryRepository.findById(item.productId());
 
             if (inventoryOpt.isEmpty()) {
-                eventPublisher.publishEvent(new StockDeductionFailedEvent(
+                stockEventPublisher.publishStockDeductionFailed(new StockDeductionFailedEvent(
                         item.productId(),
                         command.orderId(),
                         item.quantity(),
@@ -46,14 +46,14 @@ public class DecreaseOrderInventoryUseCase {
 
             try {
                 inventory.decrease(item.quantity());
-                eventPublisher.publishEvent(new StockDeductedEvent(
+                stockEventPublisher.publishStockDeducted(new StockDeductedEvent(
                         inventory.getProductId(),
                         command.orderId(),
                         item.quantity(),
                         inventory.getAvailableQuantity()
                 ));
             } catch (InsufficientStockException e) {
-                eventPublisher.publishEvent(new StockDeductionFailedEvent(
+                stockEventPublisher.publishStockDeductionFailed(new StockDeductionFailedEvent(
                         inventory.getProductId(),
                         command.orderId(),
                         item.quantity(),
