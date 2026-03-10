@@ -2,14 +2,11 @@ package dev.labs.commerce.inventory.core.inventory.application.event;
 
 import java.util.Objects;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 public record StockDeductionFailedEvent(
-        @NotNull Long productId,
-        @NotBlank String orderId,
+        Long productId,
+        String orderId,
         int quantity,
-        @NotBlank String errorCode
+        String errorCode
 ) {
     public StockDeductionFailedEvent {
         Objects.requireNonNull(productId, "productId must not be null");
