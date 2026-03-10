@@ -5,7 +5,7 @@ import dev.labs.commerce.payment.core.payment.application.usecase.dto.FailPaymen
 import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
-import dev.labs.commerce.payment.core.payment.domain.event.PaymentFailedEvent;
+import dev.labs.commerce.payment.core.payment.application.event.PaymentFailedEvent;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentNotFoundException;
 import lombok.RequiredArgsConstructor;

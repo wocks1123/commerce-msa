@@ -1,4 +1,6 @@
 package dev.labs.commerce.inventory.api.messaging.dto;
 
-public record ProductRegisteredEvent(Long productId) {
+import jakarta.validation.constraints.NotNull;
+
+public record ProductRegisteredEvent(@NotNull Long productId) {
 }

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record OrderCreatedEvent(
+public record OrderAbortedEvent(
         @NotBlank String orderId,
         @NotEmpty List<@Valid OrderItemPayload> items
 ) {

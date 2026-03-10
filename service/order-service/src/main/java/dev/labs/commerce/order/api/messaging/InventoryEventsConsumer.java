@@ -3,8 +3,8 @@ package dev.labs.commerce.order.api.messaging;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
-import dev.labs.commerce.order.api.messaging.dto.StockDeductedKafkaEvent;
-import dev.labs.commerce.order.api.messaging.dto.StockDeductionFailedKafkaEvent;
+import dev.labs.commerce.order.api.messaging.dto.StockDeductedEvent;
+import dev.labs.commerce.order.api.messaging.dto.StockDeductionFailedEvent;
 import dev.labs.commerce.order.core.order.application.usecase.CancelOrderByStockFailureUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.ConfirmStockDeductedUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CancelOrderByStockFailureCommand;
@@ -25,7 +25,7 @@ public class InventoryEventsConsumer {
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
-            StockDeductedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), StockDeductedKafkaEvent.class);
+            StockDeductedEvent event = eventPayloadConverter.convert(envelope.payload(), StockDeductedEvent.class);
             log.info("Received StockDeductedEvent: orderId={}, productId={}", event.orderId(), event.productId());
             confirmStockDeductedUseCase.execute(new ConfirmStockDeductedCommand(event.orderId()));
         };
@@ -37,7 +37,7 @@ public class InventoryEventsConsumer {
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
-            StockDeductionFailedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), StockDeductionFailedKafkaEvent.class);
+            StockDeductionFailedEvent event = eventPayloadConverter.convert(envelope.payload(), StockDeductionFailedEvent.class);
             log.info("Received StockDeductionFailedEvent: orderId={}, productId={}, errorCode={}",
                     event.orderId(), event.productId(), event.errorCode());
             cancelOrderByStockFailureUseCase.execute(new CancelOrderByStockFailureCommand(event.orderId()));

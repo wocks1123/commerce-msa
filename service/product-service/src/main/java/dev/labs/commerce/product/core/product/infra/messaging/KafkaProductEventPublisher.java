@@ -3,7 +3,7 @@ package dev.labs.commerce.product.core.product.infra.messaging;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPublisher;
 import dev.labs.commerce.product.core.product.application.event.ProductEventPublisher;
-import dev.labs.commerce.product.core.product.domain.event.ProductRegisteredEvent;
+import dev.labs.commerce.product.core.product.application.event.ProductRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

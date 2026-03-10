@@ -4,7 +4,7 @@ import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterPr
 import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterProductResult;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
-import dev.labs.commerce.product.core.product.domain.event.ProductRegisteredEvent;
+import dev.labs.commerce.product.core.product.application.event.ProductRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

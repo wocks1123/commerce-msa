@@ -5,7 +5,7 @@ import dev.labs.commerce.order.core.order.application.usecase.dto.AbortOrderByPa
 import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
 import dev.labs.commerce.order.core.order.domain.error.OrderNotFoundException;
-import dev.labs.commerce.order.core.order.domain.event.OrderAbortedEvent;
+import dev.labs.commerce.order.core.order.application.event.OrderAbortedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

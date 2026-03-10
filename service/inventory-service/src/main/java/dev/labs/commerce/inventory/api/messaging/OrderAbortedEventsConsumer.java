@@ -3,7 +3,7 @@ package dev.labs.commerce.inventory.api.messaging;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
-import dev.labs.commerce.inventory.api.messaging.dto.OrderAbortedKafkaEvent;
+import dev.labs.commerce.inventory.api.messaging.dto.OrderAbortedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.RestoreInventoryQuantityUseCase;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.RestoreInventoryQuantityCommand;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class OrderAbortedEventsConsumer {
             EventPayloadConverter eventPayloadConverter
     ) {
         return envelope -> {
-            OrderAbortedKafkaEvent event = eventPayloadConverter.convert(envelope.payload(), OrderAbortedKafkaEvent.class);
+            OrderAbortedEvent event = eventPayloadConverter.convert(envelope.payload(), OrderAbortedEvent.class);
             log.info("Received OrderAbortedEvent: orderId={}, itemCount={}", event.orderId(), event.items().size());
             event.items().forEach(item ->
                     restoreInventoryQuantityUseCase.execute(new RestoreInventoryQuantityCommand(

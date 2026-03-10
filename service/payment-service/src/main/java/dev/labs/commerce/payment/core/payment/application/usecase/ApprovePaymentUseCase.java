@@ -10,7 +10,7 @@ import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
 import dev.labs.commerce.payment.core.payment.domain.PgProvider;
-import dev.labs.commerce.payment.core.payment.domain.event.PaymentApprovedEvent;
+import dev.labs.commerce.payment.core.payment.application.event.PaymentApprovedEvent;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentAmountMismatchException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentApprovalFailedException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;

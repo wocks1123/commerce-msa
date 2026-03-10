@@ -11,7 +11,7 @@ import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
 import dev.labs.commerce.order.core.order.domain.error.OrderErrorCode;
 import dev.labs.commerce.order.core.order.domain.error.OrderProductInvalidException;
-import dev.labs.commerce.order.core.order.domain.event.OrderCreatedEvent;
+import dev.labs.commerce.order.core.order.application.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
