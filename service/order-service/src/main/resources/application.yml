@@ -22,7 +22,7 @@ spring:
 
   cloud:
     function:
-      definition: onStockDeducted;onStockDeductionFailed;onPaymentApproved;onPaymentFailed
+      definition: onStockReserved;onStockReservationFailed;onPaymentApproved;onPaymentFailed
     stream:
       kafka:
         binder:
@@ -37,11 +37,11 @@ spring:
         order-paid-out-0:
           destination: order.paid
           content-type: application/json
-        onStockDeducted-in-0:
+        onStockReserved-in-0:
           destination: stock.reserved
           group: order-service
           content-type: application/json
-        onStockDeductionFailed-in-0:
+        onStockReservationFailed-in-0:
           destination: stock.reservation-failed
           group: order-service
           content-type: application/json

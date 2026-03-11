@@ -13,7 +13,7 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ConfirmStockDeductedUseCase {
+public class ConfirmStockReservedUseCase {
 
     private final SalesOrderRepository salesOrderRepository;
 

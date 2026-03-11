@@ -78,7 +78,7 @@ public class SalesOrder extends BaseEntity {
         return order;
     }
 
-    public void confirmStockDeducted(Instant paymentPendingAt) {
+    public void confirmStockReserved(Instant paymentPendingAt) {
         if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.PAYMENT_PENDING;
         this.paymentPendingAt = paymentPendingAt;
