@@ -34,6 +34,9 @@ spring:
         order-aborted-out-0:
           destination: order.aborted
           content-type: application/json
+        order-paid-out-0:
+          destination: order.paid
+          content-type: application/json
         onStockDeducted-in-0:
           destination: stock.deducted
           group: order-service
