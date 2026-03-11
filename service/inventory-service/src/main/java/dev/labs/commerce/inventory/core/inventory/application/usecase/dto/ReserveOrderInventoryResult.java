@@ -2,7 +2,7 @@ package dev.labs.commerce.inventory.core.inventory.application.usecase.dto;
 
 import java.util.List;
 
-public record DecreaseOrderInventoryResult(
+public record ReserveOrderInventoryResult(
         String orderId,
         List<ItemResult> items
 ) {
