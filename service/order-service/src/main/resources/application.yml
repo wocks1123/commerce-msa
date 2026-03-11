@@ -38,11 +38,11 @@ spring:
           destination: order.paid
           content-type: application/json
         onStockDeducted-in-0:
-          destination: stock.deducted
+          destination: stock.reserved
           group: order-service
           content-type: application/json
         onStockDeductionFailed-in-0:
-          destination: stock.deduction-failed
+          destination: stock.reservation-failed
           group: order-service
           content-type: application/json
         onPaymentApproved-in-0:

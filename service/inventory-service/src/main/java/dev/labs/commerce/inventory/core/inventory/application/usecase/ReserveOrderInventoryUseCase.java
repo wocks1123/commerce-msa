@@ -1,8 +1,8 @@
 package dev.labs.commerce.inventory.core.inventory.application.usecase;
 
-import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductedEvent;
-import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductionFailedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.event.StockEventPublisher;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockReservationFailedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockReservedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryResult;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
@@ -33,7 +33,7 @@ public class ReserveOrderInventoryUseCase {
             Optional<Inventory> inventoryOpt = inventoryRepository.findById(item.productId());
 
             if (inventoryOpt.isEmpty()) {
-                stockEventPublisher.publishStockDeductionFailed(new StockDeductionFailedEvent(
+                stockEventPublisher.publishStockReservationFailed(new StockReservationFailedEvent(
                         item.productId(),
                         command.orderId(),
                         item.quantity(),
@@ -46,14 +46,14 @@ public class ReserveOrderInventoryUseCase {
 
             try {
                 inventory.reserve(item.quantity());
-                stockEventPublisher.publishStockDeducted(new StockDeductedEvent(
+                stockEventPublisher.publishStockReserved(new StockReservedEvent(
                         inventory.getProductId(),
                         command.orderId(),
                         item.quantity(),
                         inventory.getAvailableQuantity()
                 ));
             } catch (InsufficientStockException e) {
-                stockEventPublisher.publishStockDeductionFailed(new StockDeductionFailedEvent(
+                stockEventPublisher.publishStockReservationFailed(new StockReservationFailedEvent(
                         inventory.getProductId(),
                         command.orderId(),
                         item.quantity(),

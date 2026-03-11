@@ -2,8 +2,8 @@ package dev.labs.commerce.inventory.core.inventory.application.event;
 
 public interface StockEventPublisher {
 
-    void publishStockDeducted(StockDeductedEvent event);
+    void publishStockReserved(StockReservedEvent event);
 
-    void publishStockDeductionFailed(StockDeductionFailedEvent event);
+    void publishStockReservationFailed(StockReservationFailedEvent event);
 
 }

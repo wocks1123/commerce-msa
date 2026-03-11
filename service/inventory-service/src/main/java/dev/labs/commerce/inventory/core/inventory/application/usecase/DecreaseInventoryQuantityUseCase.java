@@ -1,7 +1,7 @@
 package dev.labs.commerce.inventory.core.inventory.application.usecase;
 
-import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductedEvent;
-import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductionFailedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockReservedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockReservationFailedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseInventoryQuantityCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseInventoryQuantityResult;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
@@ -29,14 +29,14 @@ public class DecreaseInventoryQuantityUseCase {
 
         try {
             inventory.decrease(command.quantity());
-            eventPublisher.publishEvent(new StockDeductedEvent(
+            eventPublisher.publishEvent(new StockReservedEvent(
                     inventory.getProductId(),
                     command.orderId(),
                     command.quantity(),
                     inventory.getAvailableQuantity()
             ));
         } catch (InsufficientStockException e) {
-            eventPublisher.publishEvent(new StockDeductionFailedEvent(
+            eventPublisher.publishEvent(new StockReservationFailedEvent(
                     inventory.getProductId(),
                     command.orderId(),
                     command.quantity(),
