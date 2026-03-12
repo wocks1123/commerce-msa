@@ -10,6 +10,7 @@ import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistory;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
+import dev.labs.commerce.inventory.core.inventory.domain.OperationType;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InsufficientStockException;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryNotFoundException;
@@ -30,10 +31,16 @@ public class ReserveOrderInventoryUseCase {
     private final InventoryHistoryRepository inventoryHistoryRepository;
     private final StockEventPublisher stockEventPublisher;
 
+    @Transactional
     public ReserveOrderInventoryResult execute(ReserveOrderInventoryCommand command) {
         List<ReserveOrderInventoryResult.ItemResult> results = new ArrayList<>();
 
         for (ReserveOrderInventoryCommand.Item item : command.items()) {
+            if (inventoryHistoryRepository.existsByOrderIdAndProductIdAndOperationType(
+                    command.orderId(), item.productId(), OperationType.RESERVE)) {
+                continue;
+            }
+
             Optional<Inventory> inventoryOpt = inventoryRepository.findById(item.productId());
 
             if (inventoryOpt.isEmpty()) {

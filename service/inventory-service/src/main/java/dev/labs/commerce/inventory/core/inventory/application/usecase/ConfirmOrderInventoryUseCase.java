@@ -18,6 +18,11 @@ public class ConfirmOrderInventoryUseCase {
 
     public void execute(ConfirmOrderInventoryCommand command) {
         for (ConfirmOrderInventoryCommand.Item item : command.items()) {
+            if (inventoryHistoryRepository.existsByOrderIdAndProductIdAndOperationType(
+                    command.orderId(), item.productId(), OperationType.CONFIRM)) {
+                continue;
+            }
+
             Inventory inventory = inventoryRepository.findById(item.productId())
                     .orElseThrow(() -> new InventoryNotFoundException(InventoryErrorCode.INVENTORY_NOT_FOUND));
 
