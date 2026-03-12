@@ -48,14 +48,14 @@ sequenceDiagram
     OS ->> OS: 주문 저장 (PENDING)
     OS ->> K: order.created
     K ->> IS: order.created
-    IS ->> IS: 재고 차감 시도
+    IS ->> IS: 재고 예약 시도
     alt 재고 충분
-        IS ->> K: stock.deducted
-        K ->> OS: stock.deducted
+        IS ->> K: stock.reserved
+        K ->> OS: stock.reserved
         OS ->> OS: 주문 상태 → PAYMENT_PENDING
     else 재고 부족
-        IS ->> K: stock.deduction-failed
-        K ->> OS: stock.deduction-failed
+        IS ->> K: stock.reservation-failed
+        K ->> OS: stock.reservation-failed
         OS ->> OS: 주문 상태 → ABORTED
     end
 
@@ -67,10 +67,16 @@ sequenceDiagram
         PAY ->> K: payment.approved
         K ->> OS: payment.approved
         OS ->> OS: 주문 상태 → PAID
+        OS ->> K: order.paid
+        K ->> IS: order.paid
+        IS ->> IS: 재고 확정 (reservedQuantity 해제 + totalQuantity 차감)
     else 결제 실패
         PAY ->> K: payment.failed
         K ->> OS: payment.failed
         OS ->> OS: 주문 상태 → ABORTED
+        OS ->> K: order.aborted
+        K ->> IS: order.aborted
+        IS ->> IS: 재고 예약 해제 (reservedQuantity 해제)
     end
 ```
 
@@ -79,8 +85,8 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> PENDING: 주문 생성
-    PENDING --> PAYMENT_PENDING: 재고 차감 완료 (stock.deducted)
-    PENDING --> ABORTED: 재고 부족 (stock.deduction-failed)
+    PENDING --> PAYMENT_PENDING: 재고 예약 완료 (stock.reserved)
+    PENDING --> ABORTED: 재고 예약 실패 (stock.reservation-failed)
     PAYMENT_PENDING --> PAID: 결제 승인 (payment.approved)
     PAYMENT_PENDING --> ABORTED: 결제 실패 (payment.failed)
     PAYMENT_PENDING --> CANCELLED: 사용자 취소(구현 예정)
@@ -127,15 +133,16 @@ dev.labs.commerce.{service}
 
 ### Kafka 토픽
 
-| Topic                    | Publisher         | Subscriber        |
-|--------------------------|-------------------|-------------------|
-| `order.created`          | order-service     | inventory-service |
-| `order.aborted`          | order-service     | inventory-service |
-| `product.registered`     | product-service   | inventory-service |
-| `stock.deducted`         | inventory-service | order-service     |
-| `stock.deduction-failed` | inventory-service | order-service     |
-| `payment.approved`       | payment-service   | order-service     |
-| `payment.failed`         | payment-service   | order-service     |
+| Topic                       | Publisher         | Subscriber        |
+|-----------------------------|-------------------|-------------------|
+| `order.created`             | order-service     | inventory-service |
+| `order.aborted`             | order-service     | inventory-service |
+| `order.paid`                | order-service     | inventory-service |
+| `product.registered`        | product-service   | inventory-service |
+| `stock.reserved`            | inventory-service | order-service     |
+| `stock.reservation-failed`  | inventory-service | order-service     |
+| `payment.approved`          | payment-service   | order-service     |
+| `payment.failed`            | payment-service   | order-service     |
 
 ### Mock PG 게이트웨이
 
