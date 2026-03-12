@@ -75,4 +75,9 @@ public class Inventory extends BaseEntity {
         this.reservedQuantity -= qty;
     }
 
+    public void confirm(int qty) {
+        release(qty);
+        decrease(qty);
+    }
+
 }

@@ -2,14 +2,13 @@ package dev.labs.commerce.inventory.core.inventory.application.usecase.dto;
 
 import java.util.List;
 
-public record DecreaseOrderInventoryResult(
+public record ConfirmOrderInventoryCommand(
         String orderId,
-        List<ItemResult> items
+        List<Item> items
 ) {
-    public record ItemResult(
+    public record Item(
             Long productId,
-            int totalQuantity,
-            int availableQuantity
+            int quantity
     ) {
     }
 }

@@ -1,5 +1,7 @@
 package dev.labs.commerce.inventory.core.inventory.application.usecase;
 
+import dev.labs.commerce.inventory.core.inventory.application.event.StockReservedEvent;
+import dev.labs.commerce.inventory.core.inventory.application.event.StockReservationFailedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseInventoryQuantityCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.DecreaseInventoryQuantityResult;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
@@ -7,13 +9,12 @@ import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InsufficientStockException;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryNotFoundException;
-import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductedEvent;
-import dev.labs.commerce.inventory.core.inventory.application.event.StockDeductionFailedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Deprecated(forRemoval = true)
 @Service
 @RequiredArgsConstructor
 public class DecreaseInventoryQuantityUseCase {
@@ -28,14 +29,14 @@ public class DecreaseInventoryQuantityUseCase {
 
         try {
             inventory.decrease(command.quantity());
-            eventPublisher.publishEvent(new StockDeductedEvent(
+            eventPublisher.publishEvent(new StockReservedEvent(
                     inventory.getProductId(),
                     command.orderId(),
                     command.quantity(),
                     inventory.getAvailableQuantity()
             ));
         } catch (InsufficientStockException e) {
-            eventPublisher.publishEvent(new StockDeductionFailedEvent(
+            eventPublisher.publishEvent(new StockReservationFailedEvent(
                     inventory.getProductId(),
                     command.orderId(),
                     command.quantity(),

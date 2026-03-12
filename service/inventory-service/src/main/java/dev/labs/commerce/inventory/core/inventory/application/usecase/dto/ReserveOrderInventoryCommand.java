@@ -5,7 +5,7 @@ import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCod
 
 import java.util.List;
 
-public record DecreaseOrderInventoryCommand(
+public record ReserveOrderInventoryCommand(
         String orderId,
         List<Item> items
 ) {

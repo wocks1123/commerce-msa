@@ -1,5 +1,7 @@
 package dev.labs.commerce.order.core.order.application.usecase;
 
+import dev.labs.commerce.order.core.order.application.event.OrderEventPublisher;
+import dev.labs.commerce.order.core.order.application.event.OrderPaidEvent;
 import dev.labs.commerce.order.core.order.application.usecase.dto.ConfirmPaidCommand;
 import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Transactional
@@ -18,6 +21,7 @@ import java.time.Instant;
 public class ConfirmPaidUseCase {
 
     private final SalesOrderRepository salesOrderRepository;
+    private final OrderEventPublisher orderEventPublisher;
 
     public void execute(ConfirmPaidCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
@@ -34,5 +38,11 @@ public class ConfirmPaidUseCase {
         }
 
         order.confirmPaid(Instant.now());
+
+        List<OrderPaidEvent.OrderItemPayload> items = order.getItems().stream()
+                .map(item -> new OrderPaidEvent.OrderItemPayload(item.getProductId(), item.getQuantity()))
+                .toList();
+
+        orderEventPublisher.publishOrderPaid(new OrderPaidEvent(order.getOrderId(), items));
     }
 }

@@ -1,6 +1,6 @@
 package dev.labs.commerce.inventory.core.inventory.application.usecase;
 
-import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.RestoreInventoryQuantityCommand;
+import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ConfirmOrderInventoryCommand;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
@@ -11,15 +11,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class RestoreInventoryQuantityUseCase {
+@Transactional
+public class ConfirmOrderInventoryUseCase {
 
     private final InventoryRepository inventoryRepository;
 
-    @Transactional
-    public void execute(RestoreInventoryQuantityCommand command) {
-        Inventory inventory = inventoryRepository.findById(command.productId())
-                .orElseThrow(() -> new InventoryNotFoundException(InventoryErrorCode.INVENTORY_NOT_FOUND));
+    public void execute(ConfirmOrderInventoryCommand command) {
+        for (ConfirmOrderInventoryCommand.Item item : command.items()) {
+            Inventory inventory = inventoryRepository.findById(item.productId())
+                    .orElseThrow(() -> new InventoryNotFoundException(InventoryErrorCode.INVENTORY_NOT_FOUND));
 
-        inventory.increase(command.quantity());
+            inventory.confirm(item.quantity());
+        }
     }
 }
