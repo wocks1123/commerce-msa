@@ -5,7 +5,10 @@ import dev.labs.commerce.inventory.core.inventory.application.event.StockReserva
 import dev.labs.commerce.inventory.core.inventory.application.event.StockReservedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryResult;
+import dev.labs.commerce.inventory.core.inventory.domain.Actor;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InsufficientStockException;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
@@ -24,6 +27,7 @@ import java.util.Optional;
 public class ReserveOrderInventoryUseCase {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryHistoryRepository inventoryHistoryRepository;
     private final StockEventPublisher stockEventPublisher;
 
     public ReserveOrderInventoryResult execute(ReserveOrderInventoryCommand command) {
@@ -46,6 +50,9 @@ public class ReserveOrderInventoryUseCase {
 
             try {
                 inventory.reserve(item.quantity());
+                inventoryHistoryRepository.save(
+                        InventoryHistory.reserve(command.orderId(), inventory, item.quantity(), Actor.ORDER_SERVICE)
+                );
                 stockEventPublisher.publishStockReserved(new StockReservedEvent(
                         inventory.getProductId(),
                         command.orderId(),
