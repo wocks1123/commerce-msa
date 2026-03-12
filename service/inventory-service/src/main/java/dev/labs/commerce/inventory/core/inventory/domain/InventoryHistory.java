@@ -52,27 +52,38 @@ public class InventoryHistory extends BaseEntity {
     private Actor actor;
 
 
-    public static InventoryHistory create(
+    public static InventoryHistory reserve(String orderId, Inventory inventory, int quantity, Actor actor) {
+        return of(orderId, inventory, OperationType.RESERVE, quantity, actor);
+    }
+
+    public static InventoryHistory confirm(String orderId, Inventory inventory, int quantity, Actor actor) {
+        return of(orderId, inventory, OperationType.CONFIRM, quantity, actor);
+    }
+
+    public static InventoryHistory release(String orderId, Inventory inventory, int quantity, Actor actor) {
+        return of(orderId, inventory, OperationType.RELEASE, quantity, actor);
+    }
+
+    public static InventoryHistory restock(Inventory inventory, int quantity, Actor actor) {
+        return of(null, inventory, OperationType.RESTOCK, quantity, actor);
+    }
+
+    private static InventoryHistory of(
             @Nullable String orderId,
-            Long productId,
+            Inventory inventory,
             OperationType operationType,
             int quantity,
-            int totalAfter,
-            int reservedAfter,
             Actor actor
     ) {
-        Assert.notNull(productId, "productId must not be null");
-        Assert.notNull(operationType, "operationType must not be null");
         Assert.isTrue(quantity > 0, "quantity must be positive");
-        
 
         InventoryHistory history = new InventoryHistory();
         history.orderId = orderId;
-        history.productId = productId;
+        history.productId = inventory.getProductId();
         history.operationType = operationType;
         history.quantity = quantity;
-        history.totalAfter = totalAfter;
-        history.reservedAfter = reservedAfter;
+        history.totalAfter = inventory.getTotalQuantity();
+        history.reservedAfter = inventory.getReservedQuantity();
         history.actor = actor;
         return history;
     }
