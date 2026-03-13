@@ -12,10 +12,8 @@ import org.springframework.util.Assert;
 @Table(
         name = "inventory_history",
         indexes = {
-                @Index(name = "idx_inventory_history_product_id_created_at", columnList = "product_id, created_at DESC")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_inventory_history_order_product_operation", columnNames = {"order_id", "product_id", "operation_type"})
+                @Index(name = "idx_inventory_history_product_id_created_at", columnList = "product_id, created_at DESC"),
+                @Index(name = "uk_inventory_history_order_product_operation", columnList = "order_id, product_id, operation_type", unique = true)
         }
 )
 @Getter
