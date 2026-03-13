@@ -1,12 +1,12 @@
 package dev.labs.commerce.product.core.product.application.usecase;
 
+import dev.labs.commerce.product.core.product.application.event.ProductEventPublisher;
+import dev.labs.commerce.product.core.product.application.event.ProductRegisteredEvent;
 import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterProductCommand;
 import dev.labs.commerce.product.core.product.application.usecase.dto.RegisterProductResult;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
-import dev.labs.commerce.product.core.product.application.event.ProductRegisteredEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegisterProductUseCase {
 
     private final ProductRepository productRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ProductEventPublisher productEventPublisher;
 
     @Transactional
     public RegisterProductResult execute(RegisterProductCommand command) {
@@ -28,7 +28,7 @@ public class RegisterProductUseCase {
 
         Product savedProduct = productRepository.save(product);
 
-        applicationEventPublisher.publishEvent(
+        productEventPublisher.publishProductRegistered(
                 new ProductRegisteredEvent(savedProduct.getProductId())
         );
 

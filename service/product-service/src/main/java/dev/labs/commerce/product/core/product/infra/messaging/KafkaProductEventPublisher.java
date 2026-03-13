@@ -6,6 +6,8 @@ import dev.labs.commerce.product.core.product.application.event.ProductEventPubl
 import dev.labs.commerce.product.core.product.application.event.ProductRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Component
 @RequiredArgsConstructor
@@ -15,14 +17,18 @@ public class KafkaProductEventPublisher implements ProductEventPublisher {
 
     private final EventPublisher eventPublisher;
 
-
     @Override
     public void publishProductRegistered(ProductRegisteredEvent event) {
-        eventPublisher.publish(
-                PRODUCT_REGISTERED_BINDING,
-                event.productId().toString(),
-                EventEnvelope.of(event, ProductRegisteredEvent.class)
-        );
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        PRODUCT_REGISTERED_BINDING,
+                        event.productId().toString(),
+                        EventEnvelope.of(event, ProductRegisteredEvent.class)
+                );
+            }
+        });
     }
 
 }
