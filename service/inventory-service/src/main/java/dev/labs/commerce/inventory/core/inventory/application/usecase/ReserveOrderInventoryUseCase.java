@@ -5,12 +5,17 @@ import dev.labs.commerce.inventory.core.inventory.application.event.StockReserva
 import dev.labs.commerce.inventory.core.inventory.application.event.StockReservedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryResult;
+import dev.labs.commerce.inventory.core.inventory.domain.Actor;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
+import dev.labs.commerce.inventory.core.inventory.domain.OperationType;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InsufficientStockException;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,17 +24,25 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
+@Slf4j
 public class ReserveOrderInventoryUseCase {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryHistoryRepository inventoryHistoryRepository;
     private final StockEventPublisher stockEventPublisher;
 
     public ReserveOrderInventoryResult execute(ReserveOrderInventoryCommand command) {
         List<ReserveOrderInventoryResult.ItemResult> results = new ArrayList<>();
 
         for (ReserveOrderInventoryCommand.Item item : command.items()) {
+            if (inventoryHistoryRepository.existsByOrderIdAndProductIdAndOperationType(
+                    command.orderId(), item.productId(), OperationType.RESERVE)) {
+                log.warn("Duplicate RESERVE detected. orderId={}, productId={}", command.orderId(), item.productId());
+                continue;
+            }
+
             Optional<Inventory> inventoryOpt = inventoryRepository.findById(item.productId());
 
             if (inventoryOpt.isEmpty()) {
@@ -46,6 +59,9 @@ public class ReserveOrderInventoryUseCase {
 
             try {
                 inventory.reserve(item.quantity());
+                inventoryHistoryRepository.save(
+                        InventoryHistory.reserve(command.orderId(), inventory, item.quantity(), Actor.ORDER_SERVICE)
+                );
                 stockEventPublisher.publishStockReserved(new StockReservedEvent(
                         inventory.getProductId(),
                         command.orderId(),

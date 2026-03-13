@@ -2,7 +2,10 @@ package dev.labs.commerce.inventory.core.inventory.application.usecase;
 
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.IncreaseInventoryQuantityCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.IncreaseInventoryQuantityResult;
+import dev.labs.commerce.inventory.core.inventory.domain.Actor;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryNotFoundException;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class IncreaseInventoryQuantityUseCase {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryHistoryRepository inventoryHistoryRepository;
 
     @Transactional
     public IncreaseInventoryQuantityResult execute(IncreaseInventoryQuantityCommand command) {
@@ -22,6 +26,10 @@ public class IncreaseInventoryQuantityUseCase {
                 .orElseThrow(() -> new InventoryNotFoundException(InventoryErrorCode.INVENTORY_NOT_FOUND));
 
         inventory.increase(command.quantity());
+
+        inventoryHistoryRepository.save(
+                InventoryHistory.restock(inventory, command.quantity(), Actor.ADMIN)
+        );
 
         return new IncreaseInventoryQuantityResult(
                 inventory.getProductId(),
