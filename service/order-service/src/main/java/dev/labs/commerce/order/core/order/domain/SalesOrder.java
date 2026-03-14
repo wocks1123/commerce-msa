@@ -47,8 +47,8 @@ public class SalesOrder extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private List<OrderItem> items = new ArrayList<>();
 
-    @Column(name = "payment_pending_at")
-    private Instant paymentPendingAt;
+    @Column(name = "pending_at", nullable = false)
+    private Instant pendingAt;
 
     @Column(name = "paid_at")
     private Instant paidAt;
@@ -62,8 +62,11 @@ public class SalesOrder extends BaseEntity {
     @Column(name = "failed_at")
     private Instant failedAt;
 
+    @Column(name = "expired_at")
+    private Instant expiredAt;
 
-    public static SalesOrder create(long customerId, String currency, List<OrderItem> items) {
+
+    public static SalesOrder create(long customerId, String currency, List<OrderItem> items, Instant pendingAt) {
         Assert.notEmpty(items, "items must not be empty");
         Assert.hasText(currency, "currency must not be blank");
 
@@ -75,35 +78,24 @@ public class SalesOrder extends BaseEntity {
         order.items = new ArrayList<>(items);
         order.totalPrice = items.stream().mapToLong(OrderItem::getLineAmount).sum();
         order.totalAmount = items.stream().mapToLong(OrderItem::getQuantity).sum();
+        order.pendingAt = pendingAt;
         return order;
     }
 
-    public void confirmStockReserved(Instant paymentPendingAt) {
-        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
-        this.status = OrderStatus.PAYMENT_PENDING;
-        this.paymentPendingAt = paymentPendingAt;
-    }
-
-    public void abortByStockFailure(Instant abortedAt) {
+    public void abort(Instant abortedAt) {
         if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.ABORTED;
         this.abortedAt = abortedAt;
     }
 
     public void confirmPaid(Instant paidAt) {
-        if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.PAID;
         this.paidAt = paidAt;
     }
 
-    public void abortByPaymentFailure(Instant abortedAt) {
-        if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
-        this.status = OrderStatus.ABORTED;
-        this.abortedAt = abortedAt;
-    }
-
     public void cancel(Instant cancelledAt) {
-        if (this.status != OrderStatus.PAYMENT_PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.CANCELLED;
         this.cancelledAt = cancelledAt;
     }
@@ -111,6 +103,11 @@ public class SalesOrder extends BaseEntity {
     public void markAsFailed(Instant failedAt) {
         this.status = OrderStatus.FAILED;
         this.failedAt = failedAt;
+    }
+
+    public void markAsExpired(Instant expiredAt) {
+        this.status = OrderStatus.EXPIRED;
+        this.expiredAt = expiredAt;
     }
 
 }

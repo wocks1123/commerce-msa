@@ -7,11 +7,12 @@ CREATE TABLE IF NOT EXISTS sales_order
     total_amount       BIGINT      NOT NULL,
     currency           VARCHAR(3)  NOT NULL,
     version            BIGINT      NOT NULL,
-    payment_pending_at TIMESTAMPTZ,
+    pending_at         TIMESTAMPTZ NOT NULL,
     paid_at            TIMESTAMPTZ,
     aborted_at         TIMESTAMPTZ,
     cancelled_at       TIMESTAMPTZ,
     failed_at          TIMESTAMPTZ,
+    expired_at         TIMESTAMPTZ,
     created_at         TIMESTAMPTZ NOT NULL,
     updated_at         TIMESTAMPTZ NOT NULL
 );

@@ -8,11 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-
+@Deprecated(forRemoval = true)
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class ConfirmStockReservedUseCase {
 
     private final SalesOrderRepository salesOrderRepository;
@@ -20,6 +19,7 @@ public class ConfirmStockReservedUseCase {
     public void execute(ConfirmStockReservedCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
-        order.confirmStockReserved(Instant.now());
+        // order.confirmStockReserved(Instant.now());
     }
+
 }

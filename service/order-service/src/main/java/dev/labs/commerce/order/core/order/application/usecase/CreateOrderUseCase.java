@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,7 +43,7 @@ public class CreateOrderUseCase {
                 ))
                 .toList();
 
-        SalesOrder order = SalesOrder.create(command.customerId(), command.currency(), items);
+        SalesOrder order = SalesOrder.create(command.customerId(), command.currency(), items, Instant.now());
         SalesOrder saved = salesOrderRepository.save(order);
 
         List<OrderCreatedEvent.OrderItemPayload> itemPayloads = saved.getItems().stream()

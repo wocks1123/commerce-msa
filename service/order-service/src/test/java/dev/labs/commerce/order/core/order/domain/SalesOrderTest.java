@@ -18,13 +18,7 @@ class SalesOrderTest {
     }
 
     private SalesOrder pendingOrder() {
-        return SalesOrder.create(100L, "KRW", List.of(sampleItem()));
-    }
-
-    private SalesOrder paymentPendingOrder() {
-        SalesOrder order = pendingOrder();
-        order.confirmStockReserved(Instant.now());
-        return order;
+        return SalesOrder.create(100L, "KRW", List.of(sampleItem()), Instant.now());
     }
 
     @Nested
@@ -39,13 +33,14 @@ class SalesOrderTest {
             List<OrderItem> items = List.of(sampleItem());
 
             // when
-            SalesOrder order = SalesOrder.create(customerId, "KRW", items);
+            SalesOrder order = SalesOrder.create(customerId, "KRW", items, Instant.now());
 
             // then
             assertThat(order.getOrderId()).isNotBlank();
             assertThat(order.getCustomerId()).isEqualTo(customerId);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(order.getCurrency()).isEqualTo("KRW");
+            assertThat(order.getPendingAt()).isNotNull();
         }
 
         @Test
@@ -56,7 +51,7 @@ class SalesOrderTest {
             OrderItem item2 = OrderItem.create(2L, "상품B", 3000L, 3, "KRW"); // 9,000
 
             // when
-            SalesOrder order = SalesOrder.create(100L, "KRW", List.of(item1, item2));
+            SalesOrder order = SalesOrder.create(100L, "KRW", List.of(item1, item2), Instant.now());
 
             // then
             assertThat(order.getTotalPrice()).isEqualTo(19000L);
@@ -67,7 +62,7 @@ class SalesOrderTest {
         @DisplayName("주문 항목이 없으면 주문을 생성할 수 없다")
         void createOrder_withEmptyItems_throwsException() {
             // when & then
-            assertThatThrownBy(() -> SalesOrder.create(100L, "KRW", List.of()))
+            assertThatThrownBy(() -> SalesOrder.create(100L, "KRW", List.of(), Instant.now()))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -78,53 +73,23 @@ class SalesOrderTest {
             List<OrderItem> items = List.of(sampleItem());
 
             // when & then
-            assertThatThrownBy(() -> SalesOrder.create(100L, " ", items))
+            assertThatThrownBy(() -> SalesOrder.create(100L, " ", items, Instant.now()))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
     @Nested
-    @DisplayName("재고 예약 완료")
-    class ConfirmStockReserved {
+    @DisplayName("주문 중단")
+    class Abort {
 
         @Test
-        @DisplayName("주문 접수 후 재고 예약이 완료되면 결제 대기 상태로 전환된다")
-        void confirmStockReserved_whenPending_transitionsToPaymentPending() {
+        @DisplayName("주문 접수 상태에서 중단하면 중단 상태로 전환된다")
+        void abort_whenPending_transitionsToAborted() {
             // given
             SalesOrder order = pendingOrder();
 
             // when
-            order.confirmStockReserved(Instant.now());
-
-            // then
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.PAYMENT_PENDING);
-            assertThat(order.getPaymentPendingAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 재고 예약 완료 처리를 할 수 없다")
-        void confirmStockReserved_whenNotPending_throwsException() {
-            // given
-            SalesOrder order = paymentPendingOrder();
-
-            // when & then
-            assertThatThrownBy(() -> order.confirmStockReserved(Instant.now()))
-                    .isInstanceOf(InvalidOrderStateException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("재고 부족으로 인한 주문 중단")
-    class AbortByStockFailure {
-
-        @Test
-        @DisplayName("재고 부족이 발생하면 주문 접수 상태에서 중단 상태로 전환된다")
-        void abortByStockFailure_whenPending_transitionsToAborted() {
-            // given
-            SalesOrder order = pendingOrder();
-
-            // when
-            order.abortByStockFailure(Instant.now());
+            order.abort(Instant.now());
 
             // then
             assertThat(order.getStatus()).isEqualTo(OrderStatus.ABORTED);
@@ -132,13 +97,14 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 재고 부족 중단 처리를 할 수 없다")
-        void abortByStockFailure_whenNotPending_throwsException() {
+        @DisplayName("주문 접수 상태가 아닌 주문은 중단 처리를 할 수 없다")
+        void abort_whenNotPending_throwsException() {
             // given
-            SalesOrder order = paymentPendingOrder();
+            SalesOrder order = pendingOrder();
+            order.abort(Instant.now());
 
             // when & then
-            assertThatThrownBy(() -> order.abortByStockFailure(Instant.now()))
+            assertThatThrownBy(() -> order.abort(Instant.now()))
                     .isInstanceOf(InvalidOrderStateException.class);
         }
     }
@@ -148,10 +114,10 @@ class SalesOrderTest {
     class ConfirmPaid {
 
         @Test
-        @DisplayName("결제 대기 중인 주문의 결제가 완료되면 결제 완료 상태로 전환된다")
-        void confirmPaid_whenPaymentPending_transitionsToPaid() {
+        @DisplayName("주문 접수 상태에서 결제가 완료되면 결제 완료 상태로 전환된다")
+        void confirmPaid_whenPending_transitionsToPaid() {
             // given
-            SalesOrder order = paymentPendingOrder();
+            SalesOrder order = pendingOrder();
 
             // when
             order.confirmPaid(Instant.now());
@@ -162,43 +128,14 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("결제 대기 상태가 아닌 주문은 결제 완료 처리를 할 수 없다")
-        void confirmPaid_whenNotPaymentPending_throwsException() {
+        @DisplayName("주문 접수 상태가 아닌 주문은 결제 완료 처리를 할 수 없다")
+        void confirmPaid_whenNotPending_throwsException() {
             // given
             SalesOrder order = pendingOrder();
+            order.abort(Instant.now());
 
             // when & then
             assertThatThrownBy(() -> order.confirmPaid(Instant.now()))
-                    .isInstanceOf(InvalidOrderStateException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("결제 실패로 인한 주문 중단")
-    class AbortByPaymentFailure {
-
-        @Test
-        @DisplayName("결제 실패 시 결제 대기 상태에서 중단 상태로 전환된다")
-        void abortByPaymentFailure_whenPaymentPending_transitionsToAborted() {
-            // given
-            SalesOrder order = paymentPendingOrder();
-
-            // when
-            order.abortByPaymentFailure(Instant.now());
-
-            // then
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.ABORTED);
-            assertThat(order.getAbortedAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("결제 대기 상태가 아닌 주문은 결제 실패 처리를 할 수 없다")
-        void abortByPaymentFailure_whenNotPaymentPending_throwsException() {
-            // given
-            SalesOrder order = pendingOrder();
-
-            // when & then
-            assertThatThrownBy(() -> order.abortByPaymentFailure(Instant.now()))
                     .isInstanceOf(InvalidOrderStateException.class);
         }
     }
@@ -208,10 +145,10 @@ class SalesOrderTest {
     class Cancel {
 
         @Test
-        @DisplayName("결제 대기 중인 주문을 취소하면 취소 상태로 전환된다")
-        void cancel_whenPaymentPending_transitionsToCancelled() {
+        @DisplayName("주문 접수 상태에서 취소하면 취소 상태로 전환된다")
+        void cancel_whenPending_transitionsToCancelled() {
             // given
-            SalesOrder order = paymentPendingOrder();
+            SalesOrder order = pendingOrder();
 
             // when
             order.cancel(Instant.now());
@@ -222,14 +159,34 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("결제 대기 상태가 아닌 주문은 취소할 수 없다")
-        void cancel_whenNotPaymentPending_throwsException() {
+        @DisplayName("주문 접수 상태가 아닌 주문은 취소할 수 없다")
+        void cancel_whenNotPending_throwsException() {
             // given
             SalesOrder order = pendingOrder();
+            order.abort(Instant.now());
 
             // when & then
             assertThatThrownBy(() -> order.cancel(Instant.now()))
                     .isInstanceOf(InvalidOrderStateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("주문 만료")
+    class MarkAsExpired {
+
+        @Test
+        @DisplayName("주문 접수 상태에서 만료되면 만료 상태로 전환된다")
+        void markAsExpired_whenPending_transitionsToExpired() {
+            // given
+            SalesOrder order = pendingOrder();
+
+            // when
+            order.markAsExpired(Instant.now());
+
+            // then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.EXPIRED);
+            assertThat(order.getExpiredAt()).isNotNull();
         }
     }
 
