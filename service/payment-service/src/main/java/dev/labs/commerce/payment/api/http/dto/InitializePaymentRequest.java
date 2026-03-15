@@ -1,8 +1,6 @@
 package dev.labs.commerce.payment.api.http.dto;
 
-import dev.labs.commerce.payment.core.payment.domain.PgProvider;
-
-import java.time.Instant;
+import java.util.List;
 
 public record InitializePaymentRequest(
         String orderId,
@@ -10,7 +8,8 @@ public record InitializePaymentRequest(
         long amount,
         String currency,
         String idempotencyKey,
-        PgProvider pgProvider,
-        Instant requestedAt
+        List<Item> items
 ) {
+    public record Item(Long productId, int quantity) {
+    }
 }

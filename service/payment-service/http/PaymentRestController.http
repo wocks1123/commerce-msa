@@ -12,7 +12,5 @@ Content-Type: application/json
   "customerId": 1,
   "amount": 50000,
   "currency": "KRW",
-  "idempotencyKey": "idem-key-001",
-  "pgProvider": "MOCK_PAY",
-  "requestedAt": "2026-03-01T10:00:00Z"
+  "idempotencyKey": "idem-key-001"
 }
