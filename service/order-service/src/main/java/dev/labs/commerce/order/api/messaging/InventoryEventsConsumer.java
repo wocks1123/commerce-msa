@@ -4,11 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
 import dev.labs.commerce.order.api.messaging.dto.StockReservationFailedEvent;
-import dev.labs.commerce.order.api.messaging.dto.StockReservedEvent;
 import dev.labs.commerce.order.core.order.application.usecase.CancelOrderByStockFailureUseCase;
-import dev.labs.commerce.order.core.order.application.usecase.ConfirmStockReservedUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CancelOrderByStockFailureCommand;
-import dev.labs.commerce.order.core.order.application.usecase.dto.ConfirmStockReservedCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,18 +15,6 @@ import java.util.function.Consumer;
 @Configuration
 @Slf4j
 public class InventoryEventsConsumer {
-
-    @Bean
-    public Consumer<EventEnvelope<JsonNode>> onStockReserved(
-            ConfirmStockReservedUseCase confirmStockReservedUseCase,
-            EventPayloadConverter eventPayloadConverter
-    ) {
-        return envelope -> {
-            StockReservedEvent event = eventPayloadConverter.convert(envelope.payload(), StockReservedEvent.class);
-            log.info("Received StockReservedEvent: orderId={}, productId={}", event.orderId(), event.productId());
-            confirmStockReservedUseCase.execute(new ConfirmStockReservedCommand(event.orderId()));
-        };
-    }
 
     @Bean
     public Consumer<EventEnvelope<JsonNode>> onStockReservationFailed(
