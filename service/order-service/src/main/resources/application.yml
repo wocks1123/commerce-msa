@@ -28,9 +28,6 @@ spring:
         binder:
           brokers: localhost:20023
       bindings:
-        order-created-out-0:
-          destination: order.created
-          content-type: application/json
         order-aborted-out-0:
           destination: order.aborted
           content-type: application/json
