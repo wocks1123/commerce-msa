@@ -13,7 +13,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RequiredArgsConstructor
 public class KafkaStockEventPublisher implements StockEventPublisher {
 
-    private static final String TOPIC_STOCK_RESERVATION_FAILED = "stock.reservation-failed";
+    private static final String TOPIC_STOCK_RESERVATION_FAILED = "stock.reservation.failed";
 
     private final EventPublisher eventPublisher;
 

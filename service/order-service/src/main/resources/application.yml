@@ -38,7 +38,7 @@ spring:
           destination: order.paid
           content-type: application/json
         onStockReservationFailed-in-0:
-          destination: stock.reservation-failed
+          destination: stock.reservation.failed
           group: order-service
           content-type: application/json
         onPaymentApproved-in-0:
