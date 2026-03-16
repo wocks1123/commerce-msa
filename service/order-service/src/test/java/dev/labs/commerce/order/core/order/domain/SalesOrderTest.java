@@ -188,6 +188,18 @@ class SalesOrderTest {
             assertThat(order.getStatus()).isEqualTo(OrderStatus.EXPIRED);
             assertThat(order.getExpiredAt()).isNotNull();
         }
+
+        @Test
+        @DisplayName("주문 접수 상태가 아닌 주문은 만료 처리를 할 수 없다")
+        void markAsExpired_whenNotPending_throwsException() {
+            // given
+            SalesOrder order = pendingOrder();
+            order.abort(Instant.now());
+
+            // when & then
+            assertThatThrownBy(() -> order.markAsExpired(Instant.now()))
+                    .isInstanceOf(InvalidOrderStateException.class);
+        }
     }
 
     @Nested
@@ -195,8 +207,8 @@ class SalesOrderTest {
     class MarkAsFailed {
 
         @Test
-        @DisplayName("어떤 상태의 주문이든 시스템 오류로 실패 처리할 수 있다")
-        void markAsFailed_fromAnyStatus_transitionsToFailed() {
+        @DisplayName("주문 접수 상태에서 시스템 오류가 발생하면 실패 상태로 전환된다")
+        void markAsFailed_whenPending_transitionsToFailed() {
             // given
             SalesOrder order = pendingOrder();
 
@@ -206,6 +218,18 @@ class SalesOrderTest {
             // then
             assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED);
             assertThat(order.getFailedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("주문 접수 상태가 아닌 주문은 실패 처리를 할 수 없다")
+        void markAsFailed_whenNotPending_throwsException() {
+            // given
+            SalesOrder order = pendingOrder();
+            order.abort(Instant.now());
+
+            // when & then
+            assertThatThrownBy(() -> order.markAsFailed(Instant.now()))
+                    .isInstanceOf(InvalidOrderStateException.class);
         }
     }
 }

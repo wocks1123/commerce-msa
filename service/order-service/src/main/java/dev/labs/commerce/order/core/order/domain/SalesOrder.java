@@ -110,6 +110,7 @@ public class SalesOrder extends BaseEntity {
     public void markAsFailed(Instant failedAt) {
         Assert.notNull(failedAt, "failedAt must not be null");
 
+        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.FAILED;
         this.failedAt = failedAt;
     }
@@ -117,6 +118,7 @@ public class SalesOrder extends BaseEntity {
     public void markAsExpired(Instant expiredAt) {
         Assert.notNull(expiredAt, "expiredAt must not be null");
 
+        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.EXPIRED;
         this.expiredAt = expiredAt;
     }
