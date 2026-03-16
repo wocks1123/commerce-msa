@@ -53,7 +53,7 @@ public class InventoryRestController {
     @PatchMapping("/{productId}/quantity")
     public InventoryQuantityResponse increaseInventoryQuantity(
             @PathVariable Long productId,
-            @RequestBody IncreaseInventoryQuantityRequest request) {
+            @RequestBody @Valid IncreaseInventoryQuantityRequest request) {
         IncreaseInventoryQuantityCommand command = new IncreaseInventoryQuantityCommand(
                 productId,
                 request.quantity()
