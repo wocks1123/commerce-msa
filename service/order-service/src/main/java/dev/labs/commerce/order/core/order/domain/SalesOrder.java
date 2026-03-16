@@ -69,6 +69,7 @@ public class SalesOrder extends BaseEntity {
     public static SalesOrder create(long customerId, String currency, List<OrderItem> items, Instant pendingAt) {
         Assert.notEmpty(items, "items must not be empty");
         Assert.hasText(currency, "currency must not be blank");
+        Assert.notNull(pendingAt, "pendingAt must not be null");
 
         SalesOrder order = new SalesOrder();
         order.orderId = UUID.randomUUID().toString();
@@ -83,29 +84,39 @@ public class SalesOrder extends BaseEntity {
     }
 
     public void abort(Instant abortedAt) {
+        Assert.notNull(abortedAt, "abortedAt must not be null");
+
         if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.ABORTED;
         this.abortedAt = abortedAt;
     }
 
     public void confirmPaid(Instant paidAt) {
+        Assert.notNull(paidAt, "paidAt must not be null");
+
         if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.PAID;
         this.paidAt = paidAt;
     }
 
     public void cancel(Instant cancelledAt) {
+        Assert.notNull(cancelledAt, "cancelledAt must not be null");
+
         if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
         this.status = OrderStatus.CANCELLED;
         this.cancelledAt = cancelledAt;
     }
 
     public void markAsFailed(Instant failedAt) {
+        Assert.notNull(failedAt, "failedAt must not be null");
+
         this.status = OrderStatus.FAILED;
         this.failedAt = failedAt;
     }
 
     public void markAsExpired(Instant expiredAt) {
+        Assert.notNull(expiredAt, "expiredAt must not be null");
+
         this.status = OrderStatus.EXPIRED;
         this.expiredAt = expiredAt;
     }
