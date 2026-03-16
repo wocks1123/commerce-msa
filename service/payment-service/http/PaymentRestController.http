@@ -8,9 +8,18 @@ POST {{BASE_URL}}/api/v1/payments
 Content-Type: application/json
 
 {
-  "orderId": "ORDER-001",
+  "orderId": "{{orderId}}",
   "customerId": 1,
-  "amount": 50000,
+  "amount": 398000,
   "currency": "KRW",
-  "idempotencyKey": "idem-key-001"
+  "idempotencyKey": "{{$uuid}}",
+  "items": [
+    {
+      "productId": {{productId}},
+      "unitPrice": 199000,
+      "quantity": 2,
+      "lineAmount": 398000,
+      "currency": "KRW"
+    }
+  ]
 }
