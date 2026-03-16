@@ -75,9 +75,13 @@ Content-Type: application/json
   "customerId": 1,
   "amount": 398000,
   "currency": "KRW",
-  "idempotencyKey": "idem-key-001",
-  "pgProvider": "MOCK_PAY",
-  "requestedAt": "2026-03-01T10:00:00Z"
+  "idempotencyKey": "{{$uuid}}",
+  "items": [
+    {
+      "productId": {{productId}},
+      "quantity": 2
+    }
+  ]
 }
 
 > {%

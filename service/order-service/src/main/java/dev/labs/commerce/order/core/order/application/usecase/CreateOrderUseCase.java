@@ -1,6 +1,5 @@
 package dev.labs.commerce.order.core.order.application.usecase;
 
-import dev.labs.commerce.order.core.order.application.event.OrderEventPublisher;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CreateOrderCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CreateOrderResult;
 import dev.labs.commerce.order.core.order.application.usecase.dto.OrderItemCommand;
@@ -11,11 +10,11 @@ import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
 import dev.labs.commerce.order.core.order.domain.error.OrderErrorCode;
 import dev.labs.commerce.order.core.order.domain.error.OrderProductInvalidException;
-import dev.labs.commerce.order.core.order.application.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,7 +26,6 @@ public class CreateOrderUseCase {
 
     private final SalesOrderRepository salesOrderRepository;
     private final ProductPort productPort;
-    private final OrderEventPublisher orderEventPublisher;
 
     public CreateOrderResult execute(CreateOrderCommand command) {
         Map<Long, ProductInfo> productMap = validateProducts(command);
@@ -42,27 +40,8 @@ public class CreateOrderUseCase {
                 ))
                 .toList();
 
-        SalesOrder order = SalesOrder.create(command.customerId(), command.currency(), items);
+        SalesOrder order = SalesOrder.create(command.customerId(), command.currency(), items, Instant.now());
         SalesOrder saved = salesOrderRepository.save(order);
-
-        List<OrderCreatedEvent.OrderItemPayload> itemPayloads = saved.getItems().stream()
-                .map(item -> new OrderCreatedEvent.OrderItemPayload(
-                        item.getProductId(),
-                        item.getQuantity(),
-                        item.getUnitPrice(),
-                        item.getLineAmount(),
-                        item.getCurrency()
-                ))
-                .toList();
-
-        orderEventPublisher.publishOrderCreated(new OrderCreatedEvent(
-                saved.getOrderId(),
-                String.valueOf(saved.getCustomerId()),
-                itemPayloads,
-                saved.getTotalPrice(),
-                saved.getTotalAmount(),
-                saved.getCurrency()
-        ));
 
         return new CreateOrderResult(
                 saved.getOrderId(),

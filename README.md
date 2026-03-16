@@ -1,7 +1,7 @@
 # Commerce MSA
 
-- Kafka 기반 Saga 주문 처리 시스템을 DDD 레이어 구조로 구현한 프로젝트
-- 상품 조회부터 결제 완료까지 단일 주문 플로우를 4개의 독립 서비스가 이벤트로 협력해 처리
+- 상품 조회부터 결제 완료까지의 주문 플로우를 여러 독립 서비스가 협력해 처리하는 이벤트 기반 커머스 MSA 시스템
+- Kafka 기반 이벤트 흐름, 재고 예약, 결제 승인, 멱등 처리 등 실제 커머스 환경의 문제를 직접 구현하며 검증하는 프로젝트
 
 ---
 
@@ -32,51 +32,53 @@
 
 ## 주문 흐름
 
-- 별도의 오케스트레이터 없이 각 서비스가 이벤트를 발행·구독하며 협력
+- 결제 초기화 시점에 재고를 동기 예약하여 결제창 진입 전 재고 확보를 보장
+- 재고 확정·해제 등 사후 처리는 Kafka 이벤트로 비동기 협력
 
 ```mermaid
 sequenceDiagram
     participant C as Client
     participant OS as order-service
     participant PS as product-service
-    participant IS as inventory-service
     participant PAY as payment-service
+    participant IS as inventory-service
     participant K as Kafka
     C ->> OS: 1. POST /api/v1/orders
     OS ->> PS: 상품 유효성 검증 (REST)
     PS -->> OS: 상품 정보
-    OS ->> OS: 주문 저장 (PENDING)
-    OS ->> K: order.created
-    K ->> IS: order.created
-    IS ->> IS: 재고 예약 시도
-    alt 재고 충분
-        IS ->> K: stock.reserved
-        K ->> OS: stock.reserved
-        OS ->> OS: 주문 상태 → PAYMENT_PENDING
-    else 재고 부족
-        IS ->> K: stock.reservation-failed
-        K ->> OS: stock.reservation-failed
+    OS -->> C: 주문 생성 (PENDING)
+    C ->> PAY: 2. POST /api/v1/payments
+    PAY ->> IS: 재고 예약 (REST)
+    alt 재고 부족
+        IS -->> PAY: 실패 응답
+        PAY -->> C: 재고 부족 실패 응답
+        IS ->> K: stock.reservation.failed
+        K ->> OS: stock.reservation.failed
         OS ->> OS: 주문 상태 → ABORTED
+    else 재고 예약 성공
+        IS -->> PAY: 성공
+        PAY ->> PAY: 결제 레코드 저장 (REQUESTED)
+        PAY -->> C: PG 결제창 진입 정보 응답
     end
 
-    C ->> PAY: 2. POST /api/v1/payments
-    PAY ->> PAY: 결제 레코드 생성 (REQUESTED)
     C ->> PAY: 3. GET /payments/mock-pay/success (PG 콜백 시뮬레이션)
     PAY ->> PAY: PG 승인 처리
     alt 결제 성공
+        PAY ->> PAY: Payment APPROVED
         PAY ->> K: payment.approved
         K ->> OS: payment.approved
         OS ->> OS: 주문 상태 → PAID
         OS ->> K: order.paid
         K ->> IS: order.paid
-        IS ->> IS: 재고 확정 (reservedQuantity 해제 + totalQuantity 차감)
+        IS ->> IS: 재고 예약 확정
     else 결제 실패
+        PAY ->> PAY: Payment FAILED
         PAY ->> K: payment.failed
         K ->> OS: payment.failed
         OS ->> OS: 주문 상태 → ABORTED
         OS ->> K: order.aborted
         K ->> IS: order.aborted
-        IS ->> IS: 재고 예약 해제 (reservedQuantity 해제)
+        IS ->> IS: 재고 예약 해제
     end
 ```
 
@@ -84,14 +86,12 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING: 주문 생성
-    PENDING --> PAYMENT_PENDING: 재고 예약 완료 (stock.reserved)
-    PENDING --> ABORTED: 재고 예약 실패 (stock.reservation-failed)
-    PAYMENT_PENDING --> PAID: 결제 승인 (payment.approved)
-    PAYMENT_PENDING --> ABORTED: 결제 실패 (payment.failed)
-    PAYMENT_PENDING --> CANCELLED: 사용자 취소(구현 예정)
+    [*] --> PENDING: 주문 생성 (POST /orders)
+    PENDING --> PAID: 결제 승인 (payment.approved)
+    PENDING --> ABORTED: 재고 예약 실패 (stock.reservation.failed)
+    PENDING --> ABORTED: 결제 실패 (payment.failed)
+    PENDING --> EXPIRED: 결제 시간 초과
     PENDING --> FAILED: 시스템 오류
-    PAYMENT_PENDING --> FAILED: 시스템 오류
 ```
 
 ### 결제 상태 전이
@@ -133,16 +133,14 @@ dev.labs.commerce.{service}
 
 ### Kafka 토픽
 
-| Topic                       | Publisher         | Subscriber        |
-|-----------------------------|-------------------|-------------------|
-| `order.created`             | order-service     | inventory-service |
-| `order.aborted`             | order-service     | inventory-service |
-| `order.paid`                | order-service     | inventory-service |
-| `product.registered`        | product-service   | inventory-service |
-| `stock.reserved`            | inventory-service | order-service     |
-| `stock.reservation-failed`  | inventory-service | order-service     |
-| `payment.approved`          | payment-service   | order-service     |
-| `payment.failed`            | payment-service   | order-service     |
+| Topic                      | Publisher         | Subscriber        |
+|----------------------------|-------------------|-------------------|
+| `order.aborted`            | order-service     | inventory-service |
+| `order.paid`               | order-service     | inventory-service |
+| `product.registered`       | product-service   | inventory-service |
+| `stock.reservation.failed` | inventory-service | order-service     |
+| `payment.approved`         | payment-service   | order-service     |
+| `payment.failed`           | payment-service   | order-service     |
 
 ### Mock PG 게이트웨이
 

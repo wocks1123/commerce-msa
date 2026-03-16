@@ -8,11 +8,15 @@ POST {{BASE_URL}}/api/v1/payments
 Content-Type: application/json
 
 {
-  "orderId": "ORDER-001",
+  "orderId": "{{orderId}}",
   "customerId": 1,
-  "amount": 50000,
+  "amount": 398000,
   "currency": "KRW",
-  "idempotencyKey": "idem-key-001",
-  "pgProvider": "MOCK_PAY",
-  "requestedAt": "2026-03-01T10:00:00Z"
+  "idempotencyKey": "{{$uuid}}",
+  "items": [
+    {
+      "productId": {{productId}},
+      "quantity": 2
+    }
+  ]
 }

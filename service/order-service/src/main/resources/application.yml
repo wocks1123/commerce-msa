@@ -22,27 +22,20 @@ spring:
 
   cloud:
     function:
-      definition: onStockReserved;onStockReservationFailed;onPaymentApproved;onPaymentFailed
+      definition: onStockReservationFailed;onPaymentApproved;onPaymentFailed
     stream:
       kafka:
         binder:
           brokers: localhost:20023
       bindings:
-        order-created-out-0:
-          destination: order.created
-          content-type: application/json
         order-aborted-out-0:
           destination: order.aborted
           content-type: application/json
         order-paid-out-0:
           destination: order.paid
           content-type: application/json
-        onStockReserved-in-0:
-          destination: stock.reserved
-          group: order-service
-          content-type: application/json
         onStockReservationFailed-in-0:
-          destination: stock.reservation-failed
+          destination: stock.reservation.failed
           group: order-service
           content-type: application/json
         onPaymentApproved-in-0:

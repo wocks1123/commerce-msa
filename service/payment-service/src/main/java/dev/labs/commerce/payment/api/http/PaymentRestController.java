@@ -7,14 +7,18 @@ import dev.labs.commerce.payment.api.http.dto.InitializePaymentResponse;
 import dev.labs.commerce.payment.core.payment.application.usecase.InitializePaymentUseCase;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentResult;
+import dev.labs.commerce.payment.core.payment.domain.PgProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -30,15 +34,18 @@ public class PaymentRestController {
     @ApiConflictResponse
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public InitializePaymentResponse initializePayment(@RequestBody InitializePaymentRequest request) {
+    public InitializePaymentResponse initializePayment(@RequestBody @Valid InitializePaymentRequest request) {
         InitializePaymentCommand command = new InitializePaymentCommand(
                 request.orderId(),
                 request.customerId(),
                 request.amount(),
                 request.currency(),
                 request.idempotencyKey(),
-                request.pgProvider(),
-                request.requestedAt()
+                PgProvider.MOCK_PAY,
+                Instant.now(),
+                request.items().stream()
+                        .map(i -> new InitializePaymentCommand.Item(i.productId(), i.quantity()))
+                        .toList()
         );
 
         InitializePaymentResult result = initializePaymentUseCase.execute(command);

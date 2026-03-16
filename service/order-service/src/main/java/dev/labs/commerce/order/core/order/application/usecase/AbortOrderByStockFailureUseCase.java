@@ -1,6 +1,6 @@
 package dev.labs.commerce.order.core.order.application.usecase;
 
-import dev.labs.commerce.order.core.order.application.usecase.dto.CancelOrderByStockFailureCommand;
+import dev.labs.commerce.order.core.order.application.usecase.dto.AbortOrderByStockFailureCommand;
 import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
 import dev.labs.commerce.order.core.order.domain.error.OrderNotFoundException;
@@ -13,13 +13,13 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CancelOrderByStockFailureUseCase {
+public class AbortOrderByStockFailureUseCase {
 
     private final SalesOrderRepository salesOrderRepository;
 
-    public void execute(CancelOrderByStockFailureCommand command) {
+    public void execute(AbortOrderByStockFailureCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
-        order.abortByStockFailure(Instant.now());
+        order.abort(Instant.now());
     }
 }

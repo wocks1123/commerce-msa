@@ -2,7 +2,6 @@ package dev.labs.commerce.inventory.core.inventory.application.usecase;
 
 import dev.labs.commerce.inventory.core.inventory.application.event.StockEventPublisher;
 import dev.labs.commerce.inventory.core.inventory.application.event.StockReservationFailedEvent;
-import dev.labs.commerce.inventory.core.inventory.application.event.StockReservedEvent;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryResult;
 import dev.labs.commerce.inventory.core.inventory.domain.Actor;
@@ -62,12 +61,6 @@ public class ReserveOrderInventoryUseCase {
                 inventoryHistoryRepository.save(
                         InventoryHistory.reserve(command.orderId(), inventory, item.quantity(), Actor.ORDER_SERVICE)
                 );
-                stockEventPublisher.publishStockReserved(new StockReservedEvent(
-                        inventory.getProductId(),
-                        command.orderId(),
-                        item.quantity(),
-                        inventory.getAvailableQuantity()
-                ));
             } catch (InsufficientStockException e) {
                 stockEventPublisher.publishStockReservationFailed(new StockReservationFailedEvent(
                         inventory.getProductId(),

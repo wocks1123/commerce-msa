@@ -4,16 +4,20 @@ import dev.labs.commerce.common.web.doc.ApiBadRequestResponse;
 import dev.labs.commerce.common.web.doc.ApiNotFoundResponse;
 import dev.labs.commerce.inventory.api.http.dto.IncreaseInventoryQuantityRequest;
 import dev.labs.commerce.inventory.api.http.dto.InventoryQuantityResponse;
+import dev.labs.commerce.inventory.api.http.dto.ReserveOrderInventoryRequest;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.GetInventoryUseCase;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.IncreaseInventoryQuantityUseCase;
+import dev.labs.commerce.inventory.core.inventory.application.usecase.ReserveOrderInventoryUseCase;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.GetInventoryResult;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.IncreaseInventoryQuantityCommand;
 import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.IncreaseInventoryQuantityResult;
+import dev.labs.commerce.inventory.core.inventory.application.usecase.dto.ReserveOrderInventoryCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +29,7 @@ public class InventoryRestController {
 
     private final GetInventoryUseCase getInventoryUseCase;
     private final IncreaseInventoryQuantityUseCase increaseInventoryQuantityUseCase;
+    private final ReserveOrderInventoryUseCase reserveOrderInventoryUseCase;
 
     @Operation(summary = "Get inventory by productId")
     @ApiResponse(responseCode = "200", description = "Inventory retrieved successfully",
@@ -60,4 +65,20 @@ public class InventoryRestController {
                 result.availableQuantity()
         );
     }
+
+    @Operation(summary = "Reserve inventory for order")
+    @ApiResponse(responseCode = "200", description = "Inventory reserved successfully")
+    @ApiBadRequestResponse
+    @ApiNotFoundResponse
+    @PostMapping("/reserve")
+    public void reserveOrderInventory(@RequestBody @Valid ReserveOrderInventoryRequest request) {
+        ReserveOrderInventoryCommand command = new ReserveOrderInventoryCommand(
+                request.orderId(),
+                request.items().stream()
+                        .map(item -> new ReserveOrderInventoryCommand.Item(item.productId(), item.quantity()))
+                        .toList()
+        );
+        reserveOrderInventoryUseCase.execute(command);
+    }
+
 }

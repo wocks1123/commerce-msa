@@ -24,7 +24,7 @@ public class AbortOrderByPaymentFailureUseCase {
     public void execute(AbortOrderByPaymentFailureCommand command) {
         SalesOrder order = salesOrderRepository.findById(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
-        order.abortByPaymentFailure(Instant.now());
+        order.abort(Instant.now());
 
         List<OrderAbortedEvent.OrderItemPayload> itemPayloads = order.getItems().stream()
                 .map(item -> new OrderAbortedEvent.OrderItemPayload(
