@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class PaymentRestController {
     @ApiConflictResponse
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public InitializePaymentResponse initializePayment(@RequestBody InitializePaymentRequest request) {
+    public InitializePaymentResponse initializePayment(@RequestBody @Valid InitializePaymentRequest request) {
         InitializePaymentCommand command = new InitializePaymentCommand(
                 request.orderId(),
                 request.customerId(),
