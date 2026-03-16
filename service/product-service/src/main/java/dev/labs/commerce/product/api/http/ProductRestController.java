@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class ProductRestController {
     @ApiBadRequestResponse
     @ApiConflictResponse
     @PostMapping
-    public ResponseEntity<ProductResponse> registerProduct(@RequestBody RegisterProductRequest request) {
+    public ResponseEntity<ProductResponse> registerProduct(@RequestBody @Valid RegisterProductRequest request) {
         RegisterProductCommand command = new RegisterProductCommand(
                 request.productName(),
                 request.price(),
@@ -55,7 +56,7 @@ public class ProductRestController {
     @ApiNotFoundResponse
     @PutMapping("/{productId}")
     public ProductResponse modifyProduct(@PathVariable Long productId,
-                                         @RequestBody ModifyProductRequest request) {
+                                         @RequestBody @Valid ModifyProductRequest request) {
         ModifyProductCommand command = new ModifyProductCommand(
                 productId,
                 request.productName(),
@@ -73,7 +74,7 @@ public class ProductRestController {
     @ApiNotFoundResponse
     @PatchMapping("/{productId}/status")
     public ProductResponse changeProductStatus(@PathVariable Long productId,
-                                               @RequestBody ChangeProductStatusRequest request) {
+                                               @RequestBody @Valid ChangeProductStatusRequest request) {
         ChangeProductStatusCommand command = new ChangeProductStatusCommand(productId, request.status());
         ChangeProductStatusResult result = changeProductStatusUseCase.execute(command);
         return toProductResponse(result);

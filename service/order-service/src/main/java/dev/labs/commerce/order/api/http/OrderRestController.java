@@ -6,6 +6,7 @@ import dev.labs.commerce.order.core.order.application.usecase.CreateOrderUseCase
 import dev.labs.commerce.order.core.order.application.usecase.dto.CreateOrderCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.CreateOrderResult;
 import dev.labs.commerce.order.core.order.application.usecase.dto.OrderItemCommand;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class OrderRestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CreateOrderResponse createOrder(@RequestBody CreateOrderRequest request) {
+    public CreateOrderResponse createOrder(@RequestBody @Valid CreateOrderRequest request) {
         List<OrderItemCommand> itemCommands = request.items().stream()
                 .map(item -> new OrderItemCommand(
                         item.productId(),

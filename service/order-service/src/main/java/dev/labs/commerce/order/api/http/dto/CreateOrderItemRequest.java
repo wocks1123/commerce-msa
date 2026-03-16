@@ -1,10 +1,13 @@
 package dev.labs.commerce.order.api.http.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
 public record CreateOrderItemRequest(
-        long productId,
-        long unitPrice,
-        int quantity,
-        long lineAmount,
-        String currency
+        @Positive long productId,
+        @Positive long unitPrice,
+        @Positive int quantity,
+        @Positive long lineAmount,
+        @NotBlank String currency
 ) {
 }
