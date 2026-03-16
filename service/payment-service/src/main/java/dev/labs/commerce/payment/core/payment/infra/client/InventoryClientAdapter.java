@@ -3,6 +3,8 @@ package dev.labs.commerce.payment.core.payment.infra.client;
 import dev.labs.commerce.common.error.DependencyTimeoutException;
 import dev.labs.commerce.common.error.DependencyUnavailableException;
 import dev.labs.commerce.payment.core.payment.domain.InventoryPort;
+import dev.labs.commerce.payment.core.payment.domain.exception.InventoryClientException;
+import dev.labs.commerce.payment.core.payment.domain.exception.InventoryNotFoundException;
 import dev.labs.commerce.payment.core.payment.domain.exception.InsufficientStockException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentErrorCode;
 import dev.labs.commerce.payment.core.payment.infra.client.dto.ReserveInventoryRequest;
@@ -38,10 +40,13 @@ public class InventoryClientAdapter implements InventoryPort {
                         throw new InsufficientStockException(PaymentErrorCode.INSUFFICIENT_STOCK,
                                 "Insufficient stock for inventory reserve");
                     })
+                    .onStatus(status -> status == HttpStatus.NOT_FOUND, (req, res) -> {
+                        throw new InventoryNotFoundException(
+                                "Inventory data not found for orderId=" + orderId);
+                    })
                     .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
-                        throw new DependencyUnavailableException(
-                                PaymentErrorCode.INVENTORY_SERVICE_UNAVAILABLE,
-                                "Inventory service returned " + res.getStatusCode());
+                        throw new InventoryClientException(
+                                "Unexpected 4xx from inventory-service: " + res.getStatusCode());
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, (req, res) -> {
                         throw new DependencyUnavailableException(
