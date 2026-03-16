@@ -79,10 +79,7 @@ Content-Type: application/json
   "items": [
     {
       "productId": {{productId}},
-      "unitPrice": 199000,
-      "quantity": 2,
-      "lineAmount": 398000,
-      "currency": "KRW"
+      "quantity": 2
     }
   ]
 }
