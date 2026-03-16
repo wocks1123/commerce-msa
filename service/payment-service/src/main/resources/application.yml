@@ -27,7 +27,10 @@ spring:
           brokers: localhost:20023
       bindings:
         payment-approved-out-0:
-          destination: payment-approved
+          destination: payment.approved
+          content-type: application/json
+        payment-failed-out-0:
+          destination: payment.failed
           content-type: application/json
 
 springdoc:
