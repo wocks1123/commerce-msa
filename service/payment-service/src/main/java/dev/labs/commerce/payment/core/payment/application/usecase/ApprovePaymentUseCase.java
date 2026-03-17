@@ -1,5 +1,6 @@
 package dev.labs.commerce.payment.core.payment.application.usecase;
 
+import dev.labs.commerce.payment.core.payment.application.event.PaymentApprovedEvent;
 import dev.labs.commerce.payment.core.payment.application.event.PaymentEventPublisher;
 import dev.labs.commerce.payment.core.payment.application.port.PgGatewayRouter;
 import dev.labs.commerce.payment.core.payment.application.port.dto.PgApprovalCommand;
@@ -10,7 +11,6 @@ import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
 import dev.labs.commerce.payment.core.payment.domain.PgProvider;
-import dev.labs.commerce.payment.core.payment.application.event.PaymentApprovedEvent;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentAmountMismatchException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentApprovalFailedException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;
@@ -83,7 +83,9 @@ public class ApprovePaymentUseCase {
                 payment.getAmount(),
                 payment.getCurrency(),
                 pgResult.pgTxId(),
-                pgResult.approvedAt()
+                pgResult.approvedAt(),
+                null,
+                null
         );
     }
 }
