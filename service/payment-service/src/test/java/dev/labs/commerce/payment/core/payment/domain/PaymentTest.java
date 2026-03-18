@@ -245,10 +245,12 @@ class PaymentTest {
             Instant abortedAt = Instant.now();
 
             // when
-            payment.abort(abortedAt);
+            payment.abort("PG_SERVER_ERROR", "PG result is uncertain", abortedAt);
 
             // then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
+            assertThat(payment.getFailureCode()).isEqualTo("PG_SERVER_ERROR");
+            assertThat(payment.getFailureMessage()).isEqualTo("PG result is uncertain");
             assertThat(payment.getAbortedAt()).isEqualTo(abortedAt);
         }
 
@@ -259,7 +261,7 @@ class PaymentTest {
             Payment payment = requestedPayment();
 
             // when & then
-            assertThatThrownBy(() -> payment.abort(Instant.now()))
+            assertThatThrownBy(() -> payment.abort("PG_SERVER_ERROR", null, Instant.now()))
                     .isInstanceOf(PaymentInvalidStatusException.class);
         }
 
@@ -270,7 +272,7 @@ class PaymentTest {
             Payment payment = inProgressPayment();
 
             // when & then
-            assertThatThrownBy(() -> payment.abort(null))
+            assertThatThrownBy(() -> payment.abort("PG_SERVER_ERROR", null, null))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
