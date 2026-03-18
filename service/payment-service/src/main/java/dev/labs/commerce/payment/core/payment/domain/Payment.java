@@ -144,7 +144,7 @@ public class Payment extends BaseEntity {
         Assert.hasText(failureCode, "failureCode must not be blank");
         Assert.notNull(failedAt, "failedAt must not be null");
         if (this.status != PaymentStatus.REQUESTED && this.status != PaymentStatus.IN_PROGRESS) {
-            throw new PaymentInvalidStatusException(this.status, PaymentStatus.IN_PROGRESS);
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED, PaymentStatus.IN_PROGRESS);
         }
         this.status = PaymentStatus.FAILED;
         this.failureCode = failureCode;
