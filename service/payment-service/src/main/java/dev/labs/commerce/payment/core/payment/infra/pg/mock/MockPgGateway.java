@@ -40,6 +40,7 @@ public class MockPgGateway implements PgGateway {
             );
         }
 
-        return new PgApprovalResult(pgTxId, command.amount(), Instant.now());
+        return PgApprovalResult.success(pgTxId, command.amount(), Instant.now());
     }
+
 }
