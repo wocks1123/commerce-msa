@@ -12,14 +12,14 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class PaymentImplRepository implements PaymentCustomRepository {
+public class PaymentRepositoryImpl implements PaymentCustomRepository {
 
-    private final JPAQueryFactory factor;
+    private final JPAQueryFactory factory;
 
     @Override
     public Optional<Payment> findByOrderIdWithLock(String orderId) {
         return Optional.ofNullable(
-                factor.selectFrom(QPayment.payment)
+                factory.selectFrom(QPayment.payment)
                         .where(QPayment.payment.orderId.eq(orderId))
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .fetchOne()
