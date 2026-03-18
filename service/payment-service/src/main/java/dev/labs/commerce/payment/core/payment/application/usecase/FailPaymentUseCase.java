@@ -7,7 +7,6 @@ import dev.labs.commerce.payment.core.payment.application.usecase.dto.FailPaymen
 import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
-import dev.labs.commerce.payment.core.payment.domain.exception.PaymentInvalidStatusException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class FailPaymentUseCase {
                 .orElseThrow(() -> new PaymentNotFoundException(command.orderId()));
 
         if (payment.getStatus() != PaymentStatus.REQUESTED) {
-            throw new PaymentInvalidStatusException(payment.getStatus(), PaymentStatus.REQUESTED);
+            return FailPaymentResult.ofCurrentState(payment);
         }
 
         payment.fail(command.failureCode(), command.failureMessage(), Instant.now());
@@ -43,13 +42,6 @@ public class FailPaymentUseCase {
                 payment.getFailedAt()
         ));
 
-        return new FailPaymentResult(
-                payment.getPaymentId(),
-                payment.getOrderId(),
-                payment.getStatus(),
-                payment.getFailureCode(),
-                payment.getFailureMessage(),
-                payment.getFailedAt()
-        );
+        return FailPaymentResult.failed(payment);
     }
 }

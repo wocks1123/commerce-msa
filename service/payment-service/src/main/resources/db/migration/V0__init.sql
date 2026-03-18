@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS payment
     failure_code    VARCHAR(50),
     failure_message VARCHAR(500),
     requested_at    TIMESTAMPTZ NOT NULL,
+    in_progress_at  TIMESTAMPTZ,
     approved_at     TIMESTAMPTZ,
     failed_at       TIMESTAMPTZ,
     canceled_at     TIMESTAMPTZ,

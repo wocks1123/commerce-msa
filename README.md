@@ -99,8 +99,10 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> REQUESTED: 결제 초기화 (POST /payments)
-    REQUESTED --> APPROVED: PG 승인 콜백
-    REQUESTED --> FAILED: PG 실패 콜백
+    REQUESTED --> IN_PROGRESS: PG 승인 요청
+    IN_PROGRESS --> APPROVED: PG 승인 성공
+    IN_PROGRESS --> FAILED: PG 승인 실패
+    REQUESTED --> FAILED: PG 직접 실패 콜백
     APPROVED --> CANCELED: 결제 취소
 ```
 

@@ -57,6 +57,9 @@ public class Payment extends BaseEntity {
     @Column(name = "requested_at", nullable = false, updatable = false)
     private Instant requestedAt;
 
+    @Column(name = "in_progress_at")
+    private Instant inProgressAt;
+
     @Column(name = "approved_at")
     private Instant approvedAt;
 
@@ -117,11 +120,20 @@ public class Payment extends BaseEntity {
         return payment;
     }
 
+    public void markInProgress(Instant inProgressAt) {
+        Assert.notNull(inProgressAt, "inProgressAt must not be null");
+        if (this.status != PaymentStatus.REQUESTED) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED);
+        }
+        this.status = PaymentStatus.IN_PROGRESS;
+        this.inProgressAt = inProgressAt;
+    }
+
     public void approve(String pgTxId, Instant approvedAt) {
         Assert.hasText(pgTxId, "pgTxId must not be blank");
         Assert.notNull(approvedAt, "approvedAt must not be null");
-        if (this.status != PaymentStatus.REQUESTED) {
-            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED);
+        if (this.status != PaymentStatus.IN_PROGRESS) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.IN_PROGRESS);
         }
         this.status = PaymentStatus.APPROVED;
         this.pgTxId = pgTxId;
@@ -131,8 +143,8 @@ public class Payment extends BaseEntity {
     public void fail(String failureCode, @Nullable String failureMessage, Instant failedAt) {
         Assert.hasText(failureCode, "failureCode must not be blank");
         Assert.notNull(failedAt, "failedAt must not be null");
-        if (this.status != PaymentStatus.REQUESTED) {
-            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED);
+        if (this.status != PaymentStatus.REQUESTED && this.status != PaymentStatus.IN_PROGRESS) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.REQUESTED, PaymentStatus.IN_PROGRESS);
         }
         this.status = PaymentStatus.FAILED;
         this.failureCode = failureCode;

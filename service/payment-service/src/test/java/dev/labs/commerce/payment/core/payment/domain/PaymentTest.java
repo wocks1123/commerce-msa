@@ -16,6 +16,12 @@ class PaymentTest {
         return Payment.create("order-1", 100L, 10000L, "KRW", "idem-key-1", PgProvider.MOCK_PAY, Instant.now());
     }
 
+    private Payment inProgressPayment() {
+        Payment payment = requestedPayment();
+        payment.markInProgress(Instant.now());
+        return payment;
+    }
+
     private Payment approvedPayment() {
         return Payment.createApproved("order-1", 100L, 10000L, "KRW", "idem-key-1", PgProvider.MOCK_PAY, "pg-tx-1", Instant.now());
     }
@@ -97,14 +103,56 @@ class PaymentTest {
     }
 
     @Nested
+    @DisplayName("PG 승인 진행 중")
+    class MarkInProgress {
+
+        @Test
+        @DisplayName("결제 요청 상태에서 PG 호출을 시작하면 진행 중 상태로 전환된다")
+        void markInProgress_whenRequested_transitionsToInProgress() {
+            // given
+            Payment payment = requestedPayment();
+            Instant inProgressAt = Instant.now();
+
+            // when
+            payment.markInProgress(inProgressAt);
+
+            // then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.IN_PROGRESS);
+            assertThat(payment.getInProgressAt()).isEqualTo(inProgressAt);
+        }
+
+        @Test
+        @DisplayName("결제 요청 상태가 아닌 결제는 진행 중으로 전환할 수 없다")
+        void markInProgress_whenNotRequested_throwsException() {
+            // given
+            Payment payment = approvedPayment();
+
+            // when & then
+            assertThatThrownBy(() -> payment.markInProgress(Instant.now()))
+                    .isInstanceOf(PaymentInvalidStatusException.class);
+        }
+
+        @Test
+        @DisplayName("시각 없이 진행 중으로 전환할 수 없다")
+        void markInProgress_withNullInstant_throwsException() {
+            // given
+            Payment payment = requestedPayment();
+
+            // when & then
+            assertThatThrownBy(() -> payment.markInProgress(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("결제 승인")
     class Approve {
 
         @Test
-        @DisplayName("결제 요청 상태에서 PG 승인이 완료되면 승인 상태로 전환된다")
-        void approve_whenRequested_transitionsToApproved() {
+        @DisplayName("PG 진행 중 상태에서 PG 승인이 완료되면 승인 상태로 전환된다")
+        void approve_whenInProgress_transitionsToApproved() {
             // given
-            Payment payment = requestedPayment();
+            Payment payment = inProgressPayment();
 
             // when
             payment.approve("pg-tx-1", Instant.now());
@@ -116,8 +164,8 @@ class PaymentTest {
         }
 
         @Test
-        @DisplayName("결제 요청 상태가 아닌 결제는 승인 처리를 할 수 없다")
-        void approve_whenNotRequested_throwsException() {
+        @DisplayName("PG 진행 중 상태가 아닌 결제는 승인 처리를 할 수 없다")
+        void approve_whenNotInProgress_throwsException() {
             // given
             Payment payment = approvedPayment();
 
@@ -130,7 +178,7 @@ class PaymentTest {
         @DisplayName("PG 거래 ID 없이 결제 승인을 처리할 수 없다")
         void approve_withBlankPgTxId_throwsException() {
             // given
-            Payment payment = requestedPayment();
+            Payment payment = inProgressPayment();
 
             // when & then
             assertThatThrownBy(() -> payment.approve(" ", Instant.now()))
@@ -143,10 +191,10 @@ class PaymentTest {
     class Fail {
 
         @Test
-        @DisplayName("결제 요청 상태에서 PG 거절이 발생하면 실패 상태로 전환된다")
-        void fail_whenRequested_transitionsToFailed() {
+        @DisplayName("PG 진행 중 상태에서 PG 거절이 발생하면 실패 상태로 전환된다")
+        void fail_whenInProgress_transitionsToFailed() {
             // given
-            Payment payment = requestedPayment();
+            Payment payment = inProgressPayment();
 
             // when
             payment.fail("CARD_DECLINED", "한도 초과", Instant.now());
@@ -159,8 +207,23 @@ class PaymentTest {
         }
 
         @Test
-        @DisplayName("결제 요청 상태가 아닌 결제는 실패 처리를 할 수 없다")
-        void fail_whenNotRequested_throwsException() {
+        @DisplayName("결제 요청 상태에서도 실패 처리를 할 수 있다")
+        void fail_whenRequested_transitionsToFailed() {
+            // given
+            Payment payment = requestedPayment();
+
+            // when
+            payment.fail("PG_REJECTED", "PG 직접 거절", Instant.now());
+
+            // then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+            assertThat(payment.getFailureCode()).isEqualTo("PG_REJECTED");
+            assertThat(payment.getFailedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("REQUESTED, IN_PROGRESS 외 상태의 결제는 실패 처리를 할 수 없다")
+        void fail_whenApproved_throwsException() {
             // given
             Payment payment = approvedPayment();
 
