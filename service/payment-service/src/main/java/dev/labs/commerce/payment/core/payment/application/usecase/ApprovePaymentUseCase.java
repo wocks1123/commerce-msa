@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.Instant;
 
 @Service
@@ -75,7 +77,7 @@ public class ApprovePaymentUseCase {
         return ApprovePaymentResult.approved(payment);
     }
 
-    private ApprovePaymentResult failPayment(Payment payment, String failureCode, String failureMessage) {
+    private ApprovePaymentResult failPayment(Payment payment, String failureCode, @Nullable String failureMessage) {
         payment.fail(failureCode, failureMessage, Instant.now());
         paymentRepository.save(payment);
         eventPublisher.publishPaymentFailed(new PaymentFailedEvent(
