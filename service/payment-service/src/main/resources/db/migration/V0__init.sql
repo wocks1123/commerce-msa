@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS payment
     requested_at    TIMESTAMPTZ NOT NULL,
     in_progress_at  TIMESTAMPTZ,
     approved_at     TIMESTAMPTZ,
+    aborted_at      TIMESTAMPTZ,
     failed_at       TIMESTAMPTZ,
     canceled_at     TIMESTAMPTZ,
     version         BIGINT      NOT NULL,

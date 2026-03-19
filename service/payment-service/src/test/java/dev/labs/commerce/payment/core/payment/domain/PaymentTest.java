@@ -234,6 +234,48 @@ class PaymentTest {
     }
 
     @Nested
+    @DisplayName("결제 중단 (PG 호출 예외)")
+    class Abort {
+
+        @Test
+        @DisplayName("PG 진행 중 상태에서 PG 호출 예외가 발생하면 중단 상태로 전환된다")
+        void abort_whenInProgress_transitionsToAborted() {
+            // given
+            Payment payment = inProgressPayment();
+            Instant abortedAt = Instant.now();
+
+            // when
+            payment.abort(abortedAt);
+
+            // then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
+            assertThat(payment.getAbortedAt()).isEqualTo(abortedAt);
+        }
+
+        @Test
+        @DisplayName("PG 진행 중 상태가 아닌 결제는 중단 처리를 할 수 없다")
+        void abort_whenNotInProgress_throwsException() {
+            // given
+            Payment payment = requestedPayment();
+
+            // when & then
+            assertThatThrownBy(() -> payment.abort(Instant.now()))
+                    .isInstanceOf(PaymentInvalidStatusException.class);
+        }
+
+        @Test
+        @DisplayName("시각 없이 중단 처리를 할 수 없다")
+        void abort_withNullInstant_throwsException() {
+            // given
+            Payment payment = inProgressPayment();
+
+            // when & then
+            assertThatThrownBy(() -> payment.abort(null))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("결제 취소")
     class Cancel {
 
