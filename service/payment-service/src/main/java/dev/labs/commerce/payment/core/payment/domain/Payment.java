@@ -66,6 +66,9 @@ public class Payment extends BaseEntity {
     @Column(name = "failed_at")
     private Instant failedAt;
 
+    @Column(name = "aborted_at")
+    private Instant abortedAt;
+
     @Column(name = "canceled_at")
     private Instant canceledAt;
 
@@ -115,7 +118,6 @@ public class Payment extends BaseEntity {
         payment.idempotencyKey = idempotencyKey;
         payment.pgProvider = pgProvider;
         payment.pgTxId = pgTxId;
-        payment.requestedAt = approvedAt;
         payment.approvedAt = approvedAt;
         return payment;
     }
@@ -150,6 +152,18 @@ public class Payment extends BaseEntity {
         this.failureCode = failureCode;
         this.failureMessage = failureMessage;
         this.failedAt = failedAt;
+    }
+
+    public void abort(String failureCode, @Nullable String failureMessage, Instant abortedAt) {
+        Assert.hasText(failureCode, "failureCode must not be blank");
+        Assert.notNull(abortedAt, "abortedAt must not be null");
+        if (this.status != PaymentStatus.IN_PROGRESS) {
+            throw new PaymentInvalidStatusException(this.status, PaymentStatus.IN_PROGRESS);
+        }
+        this.status = PaymentStatus.ABORTED;
+        this.failureCode = failureCode;
+        this.failureMessage = failureMessage;
+        this.abortedAt = abortedAt;
     }
 
     public void cancel(Instant canceledAt) {
