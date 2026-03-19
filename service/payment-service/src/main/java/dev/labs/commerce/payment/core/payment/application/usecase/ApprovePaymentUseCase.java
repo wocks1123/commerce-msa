@@ -54,10 +54,6 @@ public class ApprovePaymentUseCase {
                         payment.getAmount()
                 ));
 
-        if (!pgResult.success()) {
-            return failPayment(payment, pgResult.failureCode(), pgResult.failureMessage());
-        }
-
         if (pgResult.approvedAmount() != payment.getAmount()) {
             return failPayment(payment, "AMOUNT_MISMATCH",
                     "expected=" + payment.getAmount() + ", actual=" + pgResult.approvedAmount());
