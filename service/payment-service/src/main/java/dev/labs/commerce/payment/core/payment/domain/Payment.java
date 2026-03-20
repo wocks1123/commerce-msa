@@ -167,6 +167,7 @@ public class Payment extends BaseEntity {
     }
 
     public void cancel(Instant canceledAt) {
+        Assert.notNull(canceledAt, "canceledAt must not be null");
         if (this.status != PaymentStatus.APPROVED) {
             throw new PaymentInvalidStatusException(this.status, PaymentStatus.APPROVED);
         }
