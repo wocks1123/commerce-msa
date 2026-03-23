@@ -22,3 +22,11 @@ Content-Type: application/json
     }
   ]
 }
+
+> {%
+    client.global.set("orderId", response.body.orderId)
+%}
+
+
+### Get sales order
+GET {{BASE_URL}}/api/v1/orders/{{orderId}}

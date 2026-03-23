@@ -2,9 +2,14 @@ package dev.labs.commerce.payment.api.http;
 
 import dev.labs.commerce.common.web.doc.ApiBadRequestResponse;
 import dev.labs.commerce.common.web.doc.ApiConflictResponse;
+import dev.labs.commerce.common.web.doc.ApiNotFoundResponse;
+import dev.labs.commerce.payment.api.http.dto.GetPaymentResponse;
 import dev.labs.commerce.payment.api.http.dto.InitializePaymentRequest;
 import dev.labs.commerce.payment.api.http.dto.InitializePaymentResponse;
+import dev.labs.commerce.payment.core.payment.application.usecase.GetPaymentByOrderUseCase;
+import dev.labs.commerce.payment.core.payment.application.usecase.GetPaymentUseCase;
 import dev.labs.commerce.payment.core.payment.application.usecase.InitializePaymentUseCase;
+import dev.labs.commerce.payment.core.payment.application.usecase.dto.GetPaymentResult;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentResult;
 import dev.labs.commerce.payment.core.payment.domain.PgProvider;
@@ -28,6 +33,8 @@ import java.time.Instant;
 public class PaymentRestController {
 
     private final InitializePaymentUseCase initializePaymentUseCase;
+    private final GetPaymentUseCase getPaymentUseCase;
+    private final GetPaymentByOrderUseCase getPaymentByOrderUseCase;
 
     @Operation(summary = "Initialize payment")
     @ApiResponse(responseCode = "201", description = "Payment initialized successfully", content = @Content(schema = @Schema(implementation = InitializePaymentResponse.class)))
@@ -58,6 +65,47 @@ public class PaymentRestController {
                 result.amount(),
                 result.currency(),
                 result.requestedAt()
+        );
+    }
+
+    @Operation(summary = "Get payment details")
+    @ApiResponse(responseCode = "200", description = "Payment details retrieved successfully", content = @Content(schema = @Schema(implementation = GetPaymentResponse.class)))
+    @ApiBadRequestResponse
+    @ApiNotFoundResponse
+    @GetMapping("/{paymentId}")
+    public GetPaymentResponse getPayment(@PathVariable String paymentId) {
+        GetPaymentResult result = getPaymentUseCase.execute(paymentId);
+        return toGetPaymentResponse(result);
+    }
+
+    @Operation(summary = "Get payment by order ID")
+    @ApiResponse(responseCode = "200", description = "Payment details retrieved successfully", content = @Content(schema = @Schema(implementation = GetPaymentResponse.class)))
+    @ApiBadRequestResponse
+    @ApiNotFoundResponse
+    @GetMapping("/orders/{orderId}")
+    public GetPaymentResponse getPaymentByOrder(@PathVariable String orderId) {
+        GetPaymentResult result = getPaymentByOrderUseCase.execute(orderId);
+        return toGetPaymentResponse(result);
+    }
+
+    private GetPaymentResponse toGetPaymentResponse(GetPaymentResult result) {
+        return new GetPaymentResponse(
+                result.paymentId(),
+                result.orderId(),
+                result.customerId(),
+                result.status(),
+                result.amount(),
+                result.currency(),
+                result.pgProvider(),
+                result.pgTxId(),
+                result.failureCode(),
+                result.failureMessage(),
+                result.requestedAt(),
+                result.inProgressAt(),
+                result.approvedAt(),
+                result.failedAt(),
+                result.abortedAt(),
+                result.canceledAt()
         );
     }
 

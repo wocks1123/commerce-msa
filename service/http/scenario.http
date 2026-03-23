@@ -66,6 +66,10 @@ Content-Type: application/json
 %}
 
 
+### Get sales order
+GET {{ORDER_SERVICE_BASE_URL}}/api/v1/orders/{{orderId}}
+
+
 ### Initialize payment
 POST {{PAYMENT_SERVICE_BASE_URL}}/api/v1/payments
 Content-Type: application/json
@@ -93,3 +97,9 @@ Content-Type: application/json
 GET {{PAYMENT_SERVICE_BASE_URL}}/api/v1/payments/mock-pay/success?pgTxId=3&orderId={{orderId}}&
     amount=398000
 
+> {%
+    client.global.set("paymentId", response.body.paymentId)
+%}
+
+### Get payment details
+GET {{PAYMENT_SERVICE_BASE_URL}}/api/v1/payments/{{paymentId}}
