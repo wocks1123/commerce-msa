@@ -20,3 +20,16 @@ Content-Type: application/json
     }
   ]
 }
+
+> {%
+    client.global.set("orderId", response.body.orderId)
+    client.global.set("paymentId", response.body.paymentId)
+%}
+
+
+### Get payment details
+GET {{BASE_URL}}/api/v1/payments/{{paymentId}}
+
+
+### Get payment by order ID
+GET {{BASE_URL}}/api/v1/payments/orders/{{orderId}}
