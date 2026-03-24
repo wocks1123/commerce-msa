@@ -196,3 +196,27 @@ cd deploy && docker compose up -d
 | 4  | 주문 생성 `POST /api/v1/orders`                     | order-service     |
 | 5  | 결제 초기화 `POST /api/v1/payments`                  | payment-service   |
 | 6  | PG 콜백 시뮬레이션 `GET /payments/mock-pay/success`    | payment-service   |
+
+### Docker Compose로 전체 실행 (인프라 + 서비스 일괄 기동)
+
+인프라와 4개 서비스를 한 번에 빌드·실행한다.
+
+```bash
+docker compose -f docker-compose.app.yml up --build
+```
+
+백그라운드 실행:
+
+```bash
+docker compose -f docker-compose.app.yml up --build -d
+```
+
+종료 및 정리:
+
+```bash
+# 컨테이너 중지·제거
+docker compose -f docker-compose.app.yml down
+
+# 볼륨(DB 데이터)까지 삭제
+docker compose -f docker-compose.app.yml down -v
+```
