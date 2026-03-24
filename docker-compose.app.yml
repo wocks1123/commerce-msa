@@ -1,0 +1,154 @@
+name: commerce-app-msa-app
+
+# ================================================================
+#  Infrastructure + All Services — 전체 실행용
+#  Usage:  docker compose -f docker-compose.app.yml up --build
+# ================================================================
+
+services:
+
+  # ── Infrastructure ────────────────────────────────────────────
+
+  postgres:
+    container_name: commerce-app-postgres
+    image: postgres:16-alpine
+    ports:
+      - "20011:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: commerce
+      TZ: Asia/Seoul
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d commerce" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/initdb:/docker-entrypoint-initdb.d
+
+  redis:
+    container_name: commerce-app-redis
+    image: redis:7
+    command: [ "redis-server", "--appendonly", "yes" ]
+    ports:
+      - "20021:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    container_name: commerce-app-kafka
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka
+    ports:
+      - "20023:9092"
+    environment:
+      KAFKA_PROCESS_ROLES: "controller,broker"
+      KAFKA_NODE_ID: "1"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:20023"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:29092 | grep ApiVersion" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  # ── Application Services ──────────────────────────────────────
+
+  product-service:
+    container_name: commerce-app-product
+    build:
+      context: .
+      args:
+        SERVICE_NAME: product-service
+    ports:
+      - "20101:20101"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/commerce?currentSchema=product
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  inventory-service:
+    container_name: commerce-app-inventory
+    build:
+      context: .
+      args:
+        SERVICE_NAME: inventory-service
+    ports:
+      - "20102:20102"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/commerce?currentSchema=inventory
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  order-service:
+    container_name: commerce-app-order
+    build:
+      context: .
+      args:
+        SERVICE_NAME: order-service
+    ports:
+      - "20103:20103"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/commerce?currentSchema=order
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: kafka:29092
+      SERVICE_CLIENT_PRODUCT_BASEURL: http://product-service:20101
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+
+  payment-service:
+    container_name: commerce-app-payment
+    build:
+      context: .
+      args:
+        SERVICE_NAME: payment-service
+    ports:
+      - "20104:20104"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/commerce?currentSchema=payment
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: kafka:29092
+      SERVICE_CLIENT_INVENTORY_BASEURL: http://inventory-service:20102
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      inventory-service:
+        condition: service_started
+
+volumes:
+  pgdata:

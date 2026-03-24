@@ -1,0 +1,9 @@
+.git
+.gradle
+.idea
+**/build
+**/bin
+**/out
+*.iml
+deploy/pg_log
+openapi.db
