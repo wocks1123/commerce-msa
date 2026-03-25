@@ -7,6 +7,7 @@ import dev.labs.commerce.order.core.order.domain.ProductPort;
 import dev.labs.commerce.order.core.order.domain.error.OrderErrorCode;
 import dev.labs.commerce.order.core.order.infra.client.dto.ProductSummaryDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ProductClientAdapter implements ProductPort {
 
     @Qualifier("productRestClient")
@@ -25,6 +27,7 @@ public class ProductClientAdapter implements ProductPort {
 
     @Override
     public List<ProductInfo> findProducts(List<Long> productIds) {
+        log.info("Calling product-service: productIds={}", productIds);
         try {
             List<ProductSummaryDto> result = restClient.get()
                     .uri(uriBuilder -> uriBuilder

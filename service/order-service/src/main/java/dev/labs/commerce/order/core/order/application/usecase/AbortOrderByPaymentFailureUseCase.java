@@ -47,5 +47,6 @@ public class AbortOrderByPaymentFailureUseCase {
                 order.getOrderId(),
                 itemPayloads
         ));
+        log.info("Order aborted by payment failure: orderId={}", order.getOrderId());
     }
 }

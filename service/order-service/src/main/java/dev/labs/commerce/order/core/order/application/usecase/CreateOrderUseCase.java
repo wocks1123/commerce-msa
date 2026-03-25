@@ -11,6 +11,7 @@ import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
 import dev.labs.commerce.order.core.order.domain.error.OrderErrorCode;
 import dev.labs.commerce.order.core.order.domain.error.OrderProductInvalidException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +21,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
+@Slf4j
 public class CreateOrderUseCase {
 
     private final SalesOrderRepository salesOrderRepository;
     private final ProductPort productPort;
 
     public CreateOrderResult execute(CreateOrderCommand command) {
+        log.info("Creating order: customerId={}, totalPrice={}, items={}",
+                command.customerId(), command.totalPrice(),
+                command.items().stream()
+                        .map(i -> "productId=" + i.productId() + ",qty=" + i.quantity())
+                        .toList());
+
         Map<Long, ProductInfo> productMap = validateProducts(command);
 
         List<OrderItem> items = command.items().stream()
@@ -42,6 +50,8 @@ public class CreateOrderUseCase {
 
         SalesOrder order = SalesOrder.create(command.customerId(), command.currency(), items, Instant.now());
         SalesOrder saved = salesOrderRepository.save(order);
+
+        log.info("Order created: orderId={}, status={}", saved.getOrderId(), saved.getStatus());
 
         return new CreateOrderResult(
                 saved.getOrderId(),
