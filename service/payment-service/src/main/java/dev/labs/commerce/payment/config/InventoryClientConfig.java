@@ -11,11 +11,11 @@ import org.springframework.web.client.RestClient;
 public class InventoryClientConfig {
 
     @Bean
-    public RestClient inventoryRestClient(InventoryClientProperties properties) {
+    public RestClient inventoryRestClient(RestClient.Builder builder, InventoryClientProperties properties) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(properties.getConnectTimeout());
         factory.setReadTimeout(properties.getReadTimeout());
-        return RestClient.builder()
+        return builder
                 .baseUrl(properties.getBaseUrl())
                 .requestFactory(factory)
                 .build();

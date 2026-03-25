@@ -47,6 +47,15 @@ spring:
           group: order-service
           content-type: application/json
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+
 service:
   client:
     product:
