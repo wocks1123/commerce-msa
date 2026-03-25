@@ -41,6 +41,10 @@ management:
 logging:
   pattern:
     correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  level:
+    org.apache.kafka: WARN
+    org.springframework.cloud.stream: WARN
+    org.springframework.kafka: WARN
 
 springdoc:
   api-docs:
