@@ -43,7 +43,7 @@ public class PaymentEventsConsumer {
     ) {
         return envelope -> {
             PaymentFailedEvent event = eventPayloadConverter.convert(envelope.payload(), PaymentFailedEvent.class);
-            log.info("Received PaymentFailedEvent: orderId={}, errorCode={}", event.orderId(), event.errorCode());
+            log.info("Received PaymentFailedEvent: orderId={}, failureCode={}", event.orderId(), event.failureCode());
             abortOrderByPaymentFailureUseCase.execute(new AbortOrderByPaymentFailureCommand(event.orderId()));
         };
     }
