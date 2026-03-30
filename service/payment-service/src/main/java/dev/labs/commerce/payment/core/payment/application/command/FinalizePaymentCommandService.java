@@ -33,14 +33,6 @@ public class FinalizePaymentCommandService {
         }
 
         if (!pgResult.success()) {
-            eventPublisher.publishPaymentFailed(new PaymentFailedEvent(
-                    payment.getPaymentId(),
-                    payment.getOrderId(),
-                    payment.getCustomerId(),
-                    pgResult.failureCode(),
-                    pgResult.failureMessage(),
-                    Instant.now()
-            ));
             return failPayment(payment, pgResult.failureCode(), pgResult.failureMessage());
         }
 
