@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 @Component
@@ -58,7 +59,11 @@ public class ProductClientAdapter implements ProductPort {
                     .toList();
 
         } catch (ResourceAccessException e) {
-            throw new DependencyTimeoutException(OrderErrorCode.PRODUCT_SERVICE_TIMEOUT, e.getMessage());
+            log.warn("Product service call failed: {}", e.getMessage());
+            if (e.getCause() instanceof SocketTimeoutException) {
+                throw new DependencyTimeoutException(OrderErrorCode.PRODUCT_SERVICE_TIMEOUT);
+            }
+            throw new DependencyUnavailableException(OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
         }
     }
 }
