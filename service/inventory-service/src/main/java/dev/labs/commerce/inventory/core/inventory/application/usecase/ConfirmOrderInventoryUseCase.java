@@ -5,18 +5,25 @@ import dev.labs.commerce.inventory.core.inventory.domain.*;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryErrorCode;
 import dev.labs.commerce.inventory.core.inventory.domain.error.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
+@Slf4j
 public class ConfirmOrderInventoryUseCase {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryHistoryRepository inventoryHistoryRepository;
 
     public void execute(ConfirmOrderInventoryCommand command) {
+        log.info("Confirming inventory: orderId={}, items={}",
+                command.orderId(),
+                command.items().stream()
+                        .map(i -> "productId=" + i.productId() + ",qty=" + i.quantity())
+                        .toList());
         for (ConfirmOrderInventoryCommand.Item item : command.items()) {
             if (inventoryHistoryRepository.existsByOrderIdAndProductIdAndOperationType(
                     command.orderId(), item.productId(), OperationType.CONFIRM)) {

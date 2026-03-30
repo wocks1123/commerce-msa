@@ -33,6 +33,11 @@ public class ReserveOrderInventoryUseCase {
     private final StockEventPublisher stockEventPublisher;
 
     public ReserveOrderInventoryResult execute(ReserveOrderInventoryCommand command) {
+        log.info("Reserving inventory: orderId={}, items={}",
+                command.orderId(),
+                command.items().stream()
+                        .map(i -> "productId=" + i.productId() + ",qty=" + i.quantity())
+                        .toList());
         List<ReserveOrderInventoryResult.ItemResult> results = new ArrayList<>();
 
         for (ReserveOrderInventoryCommand.Item item : command.items()) {

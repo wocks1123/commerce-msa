@@ -53,5 +53,6 @@ public class ConfirmPaidUseCase {
                 .toList();
 
         orderEventPublisher.publishOrderPaid(new OrderPaidEvent(order.getOrderId(), items));
+        log.info("Order confirmed paid: orderId={}, status=PAID", order.getOrderId());
     }
 }

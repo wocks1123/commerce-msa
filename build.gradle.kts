@@ -35,6 +35,11 @@ subprojects {
         compileOnly("org.jspecify:jspecify:1.0.0")
         errorprone("com.google.errorprone:error_prone_core:2.37.0")
         errorprone("com.uber.nullaway:nullaway:0.12.6")
+
+        // Observability: traceId 자동 생성 + 전파
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-tracing-bridge-otel")
+        implementation("io.opentelemetry:opentelemetry-exporter-otlp")
     }
     java {
         sourceCompatibility = JavaVersion.VERSION_21

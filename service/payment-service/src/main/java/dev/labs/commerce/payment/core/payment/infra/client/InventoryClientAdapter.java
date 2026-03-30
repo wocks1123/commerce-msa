@@ -9,6 +9,7 @@ import dev.labs.commerce.payment.core.payment.domain.exception.InsufficientStock
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentErrorCode;
 import dev.labs.commerce.payment.core.payment.infra.client.dto.ReserveInventoryRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class InventoryClientAdapter implements InventoryPort {
 
     @Qualifier("inventoryRestClient")
@@ -27,6 +29,11 @@ public class InventoryClientAdapter implements InventoryPort {
 
     @Override
     public void reserve(String orderId, List<InventoryPort.Item> items) {
+        log.info("Calling inventory-service reserve: orderId={}, items={}",
+                orderId,
+                items.stream()
+                        .map(i -> "productId=" + i.productId() + ",qty=" + i.quantity())
+                        .toList());
         List<ReserveInventoryRequest.Item> requestItems = items.stream()
                 .map(item -> new ReserveInventoryRequest.Item(item.productId(), item.quantity()))
                 .toList();

@@ -11,12 +11,12 @@ import org.springframework.web.client.RestClient;
 public class ProductClientConfig {
 
     @Bean
-    public RestClient productRestClient(ProductClientProperties properties) {
+    public RestClient productRestClient(RestClient.Builder builder, ProductClientProperties properties) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(properties.getConnectTimeout());
         factory.setReadTimeout(properties.getReadTimeout());
 
-        return RestClient.builder()
+        return builder
                 .baseUrl(properties.getBaseUrl())
                 .requestFactory(factory)
                 .build();
