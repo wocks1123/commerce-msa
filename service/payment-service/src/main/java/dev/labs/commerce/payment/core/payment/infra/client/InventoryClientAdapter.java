@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 @Component
@@ -62,7 +63,11 @@ public class InventoryClientAdapter implements InventoryPort {
                     })
                     .toBodilessEntity();
         } catch (ResourceAccessException e) {
-            throw new DependencyTimeoutException(PaymentErrorCode.INVENTORY_SERVICE_TIMEOUT, e.getMessage());
+            log.warn("Inventory service call failed: {}", e.getMessage());
+            if (e.getCause() instanceof SocketTimeoutException) {
+                throw new DependencyTimeoutException(PaymentErrorCode.INVENTORY_SERVICE_TIMEOUT);
+            }
+            throw new DependencyUnavailableException(PaymentErrorCode.INVENTORY_SERVICE_UNAVAILABLE);
         }
     }
 }
