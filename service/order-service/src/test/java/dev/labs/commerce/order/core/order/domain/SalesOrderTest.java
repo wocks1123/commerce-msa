@@ -17,8 +17,14 @@ class SalesOrderTest {
         return OrderItem.create(1L, "상품A", 5000L, 2, "KRW");
     }
 
-    private SalesOrder pendingOrder() {
+    private SalesOrder createdOrder() {
         return SalesOrder.create(100L, "KRW", List.of(sampleItem()), Instant.now());
+    }
+
+    private SalesOrder pendingOrder() {
+        SalesOrder order = createdOrder();
+        order.markAsPending(Instant.now());
+        return order;
     }
 
     @Nested
@@ -26,8 +32,8 @@ class SalesOrderTest {
     class Create {
 
         @Test
-        @DisplayName("유효한 정보로 주문을 생성하면 주문 접수 상태로 생성된다")
-        void createOrder_withValidInfo_startsAsPending() {
+        @DisplayName("유효한 정보로 주문을 생성하면 주문 생성 상태로 생성된다")
+        void createOrder_withValidInfo_startsAsCreated() {
             // given
             long customerId = 100L;
             List<OrderItem> items = List.of(sampleItem());
@@ -38,9 +44,9 @@ class SalesOrderTest {
             // then
             assertThat(order.getOrderId()).isNotBlank();
             assertThat(order.getCustomerId()).isEqualTo(customerId);
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
             assertThat(order.getCurrency()).isEqualTo("KRW");
-            assertThat(order.getPendingAt()).isNotNull();
+            assertThat(order.getOrderCreatedAt()).isNotNull();
         }
 
         @Test
@@ -79,11 +85,55 @@ class SalesOrderTest {
     }
 
     @Nested
+    @DisplayName("결제 초기화")
+    class MarkAsPending {
+
+        @Test
+        @DisplayName("주문 생성 상태에서 결제 초기화되면 결제 대기 상태로 전환된다")
+        void markAsPending_whenCreated_transitionsToPending() {
+            // given
+            SalesOrder order = createdOrder();
+
+            // when
+            order.markAsPending(Instant.now());
+
+            // then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+            assertThat(order.getPendingAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("주문 생성 상태가 아닌 주문은 결제 초기화 처리를 할 수 없다")
+        void markAsPending_whenNotCreated_throwsException() {
+            // given
+            SalesOrder order = pendingOrder();
+
+            // when & then
+            assertThatThrownBy(() -> order.markAsPending(Instant.now()))
+                    .isInstanceOf(InvalidOrderStateException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("주문 중단")
     class Abort {
 
         @Test
-        @DisplayName("주문 접수 상태에서 중단하면 중단 상태로 전환된다")
+        @DisplayName("주문 생성 상태에서 중단하면 중단 상태로 전환된다")
+        void abort_whenCreated_transitionsToAborted() {
+            // given
+            SalesOrder order = createdOrder();
+
+            // when
+            order.abort(Instant.now());
+
+            // then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.ABORTED);
+            assertThat(order.getAbortedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("결제 대기 상태에서 중단하면 중단 상태로 전환된다")
         void abort_whenPending_transitionsToAborted() {
             // given
             SalesOrder order = pendingOrder();
@@ -97,10 +147,10 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 중단 처리를 할 수 없다")
-        void abort_whenNotPending_throwsException() {
+        @DisplayName("진행 중인 주문이 아니면 중단 처리를 할 수 없다")
+        void abort_whenAlreadyAborted_throwsException() {
             // given
-            SalesOrder order = pendingOrder();
+            SalesOrder order = createdOrder();
             order.abort(Instant.now());
 
             // when & then
@@ -114,7 +164,7 @@ class SalesOrderTest {
     class ConfirmPaid {
 
         @Test
-        @DisplayName("주문 접수 상태에서 결제가 완료되면 결제 완료 상태로 전환된다")
+        @DisplayName("결제 대기 상태에서 결제가 완료되면 결제 완료 상태로 전환된다")
         void confirmPaid_whenPending_transitionsToPaid() {
             // given
             SalesOrder order = pendingOrder();
@@ -128,11 +178,10 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 결제 완료 처리를 할 수 없다")
-        void confirmPaid_whenNotPending_throwsException() {
+        @DisplayName("결제 대기 상태가 아닌 주문은 결제 완료 처리를 할 수 없다")
+        void confirmPaid_whenCreated_throwsException() {
             // given
-            SalesOrder order = pendingOrder();
-            order.abort(Instant.now());
+            SalesOrder order = createdOrder();
 
             // when & then
             assertThatThrownBy(() -> order.confirmPaid(Instant.now()))
@@ -145,7 +194,21 @@ class SalesOrderTest {
     class Cancel {
 
         @Test
-        @DisplayName("주문 접수 상태에서 취소하면 취소 상태로 전환된다")
+        @DisplayName("주문 생성 상태에서 취소하면 취소 상태로 전환된다")
+        void cancel_whenCreated_transitionsToCancelled() {
+            // given
+            SalesOrder order = createdOrder();
+
+            // when
+            order.cancel(Instant.now());
+
+            // then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+            assertThat(order.getCancelledAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("결제 대기 상태에서 취소하면 취소 상태로 전환된다")
         void cancel_whenPending_transitionsToCancelled() {
             // given
             SalesOrder order = pendingOrder();
@@ -159,10 +222,10 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 취소할 수 없다")
-        void cancel_whenNotPending_throwsException() {
+        @DisplayName("진행 중인 주문이 아니면 취소할 수 없다")
+        void cancel_whenAlreadyAborted_throwsException() {
             // given
-            SalesOrder order = pendingOrder();
+            SalesOrder order = createdOrder();
             order.abort(Instant.now());
 
             // when & then
@@ -176,7 +239,21 @@ class SalesOrderTest {
     class MarkAsExpired {
 
         @Test
-        @DisplayName("주문 접수 상태에서 만료되면 만료 상태로 전환된다")
+        @DisplayName("주문 생성 상태에서 만료되면 만료 상태로 전환된다")
+        void markAsExpired_whenCreated_transitionsToExpired() {
+            // given
+            SalesOrder order = createdOrder();
+
+            // when
+            order.markAsExpired(Instant.now());
+
+            // then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.EXPIRED);
+            assertThat(order.getExpiredAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("결제 대기 상태에서 만료되면 만료 상태로 전환된다")
         void markAsExpired_whenPending_transitionsToExpired() {
             // given
             SalesOrder order = pendingOrder();
@@ -190,10 +267,10 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 만료 처리를 할 수 없다")
-        void markAsExpired_whenNotPending_throwsException() {
+        @DisplayName("진행 중인 주문이 아니면 만료 처리를 할 수 없다")
+        void markAsExpired_whenAlreadyAborted_throwsException() {
             // given
-            SalesOrder order = pendingOrder();
+            SalesOrder order = createdOrder();
             order.abort(Instant.now());
 
             // when & then
@@ -207,7 +284,7 @@ class SalesOrderTest {
     class MarkAsFailed {
 
         @Test
-        @DisplayName("주문 접수 상태에서 시스템 오류가 발생하면 실패 상태로 전환된다")
+        @DisplayName("결제 대기 상태에서 시스템 오류가 발생하면 실패 상태로 전환된다")
         void markAsFailed_whenPending_transitionsToFailed() {
             // given
             SalesOrder order = pendingOrder();
@@ -221,11 +298,10 @@ class SalesOrderTest {
         }
 
         @Test
-        @DisplayName("주문 접수 상태가 아닌 주문은 실패 처리를 할 수 없다")
-        void markAsFailed_whenNotPending_throwsException() {
+        @DisplayName("결제 대기 상태가 아닌 주문은 실패 처리를 할 수 없다")
+        void markAsFailed_whenCreated_throwsException() {
             // given
-            SalesOrder order = pendingOrder();
-            order.abort(Instant.now());
+            SalesOrder order = createdOrder();
 
             // when & then
             assertThatThrownBy(() -> order.markAsFailed(Instant.now()))
