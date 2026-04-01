@@ -1,6 +1,6 @@
 package dev.labs.commerce.order.core.order.application.usecase;
 
-import dev.labs.commerce.order.core.order.application.event.OrderAbortedEvent;
+import dev.labs.commerce.order.core.order.application.event.OrderExpiredEvent;
 import dev.labs.commerce.order.core.order.application.event.OrderEventPublisher;
 import dev.labs.commerce.order.core.order.application.usecase.dto.ExpireOrderCommand;
 import dev.labs.commerce.order.core.order.domain.OrderStatus;
@@ -34,10 +34,10 @@ public class ExpireOrderUseCase {
 
         order.markAsExpired(Instant.now());
 
-        orderEventPublisher.publishOrderAborted(new OrderAbortedEvent(
+        orderEventPublisher.publishOrderExpired(new OrderExpiredEvent(
                 order.getOrderId(),
                 order.getItems().stream()
-                        .map(item -> new OrderAbortedEvent.OrderItemPayload(item.getProductId(), item.getQuantity()))
+                        .map(item -> new OrderExpiredEvent.OrderItemPayload(item.getProductId(), item.getQuantity()))
                         .toList()
         ));
         log.info("Order expired: orderId={}", order.getOrderId());

@@ -31,6 +31,9 @@ spring:
         order-aborted-out-0:
           destination: order.aborted
           content-type: application/json
+        order-expired-out-0:
+          destination: order.expired
+          content-type: application/json
         order-paid-out-0:
           destination: order.paid
           content-type: application/json
