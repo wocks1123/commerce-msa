@@ -66,3 +66,7 @@ service:
       base-url: http://localhost:20101
       connect-timeout: 3000
       read-timeout: 5000
+
+order:
+  expiry:
+    pending-expiry-minutes: 10
