@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -26,8 +28,17 @@ public class ReleaseOrderInventoryUseCase {
     public void execute(ReleaseOrderInventoryCommand command) {
         log.info("Releasing inventory: orderId={}, productId={}, quantity={}",
                 command.orderId(), command.productId(), command.quantity());
-        if (inventoryHistoryRepository.existsByOrderIdAndProductIdAndOperationType(
-                command.orderId(), command.productId(), OperationType.RELEASE)) {
+
+        Set<OperationType> ops = inventoryHistoryRepository.findOperationTypesByOrderIdAndProductId(
+                command.orderId(), command.productId());
+
+        if (ops.contains(OperationType.RELEASE)) {
+            log.info("Already released, skipping: orderId={}, productId={}", command.orderId(), command.productId());
+            return;
+        }
+
+        if (!ops.contains(OperationType.RESERVE)) {
+            log.info("No RESERVE history found, skipping release: orderId={}, productId={}", command.orderId(), command.productId());
             return;
         }
 

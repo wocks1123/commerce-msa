@@ -4,6 +4,8 @@ public interface OrderEventPublisher {
 
     void publishOrderAborted(OrderAbortedEvent event);
 
+    void publishOrderExpired(OrderExpiredEvent event);
+
     void publishOrderPaid(OrderPaidEvent event);
 
 }

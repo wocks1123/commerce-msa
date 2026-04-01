@@ -4,6 +4,7 @@ import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPublisher;
 import dev.labs.commerce.order.core.order.application.event.OrderAbortedEvent;
 import dev.labs.commerce.order.core.order.application.event.OrderEventPublisher;
+import dev.labs.commerce.order.core.order.application.event.OrderExpiredEvent;
 import dev.labs.commerce.order.core.order.application.event.OrderPaidEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class KafkaOrderEventPublisher implements OrderEventPublisher {
 
     private static final String ORDER_ABORTED_BINDING = "order-aborted-out-0";
+    private static final String ORDER_EXPIRED_BINDING = "order-expired-out-0";
     private static final String ORDER_PAID_BINDING = "order-paid-out-0";
 
     private final EventPublisher eventPublisher;
@@ -28,6 +30,20 @@ public class KafkaOrderEventPublisher implements OrderEventPublisher {
                         ORDER_ABORTED_BINDING,
                         event.orderId(),
                         EventEnvelope.of(event, OrderAbortedEvent.class)
+                );
+            }
+        });
+    }
+
+    @Override
+    public void publishOrderExpired(OrderExpiredEvent event) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        ORDER_EXPIRED_BINDING,
+                        event.orderId(),
+                        EventEnvelope.of(event, OrderExpiredEvent.class)
                 );
             }
         });
