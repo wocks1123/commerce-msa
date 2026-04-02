@@ -24,7 +24,7 @@ public class AbortOrderByStockFailureUseCase {
         SalesOrder order = salesOrderRepository.findByIdWithLock(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
 
-        if (order.getStatus() != OrderStatus.PENDING) {
+        if (order.getStatus() != OrderStatus.CREATED && order.getStatus() != OrderStatus.PENDING) {
             log.warn("Order {} already in {} state, skipping abort by stock failure",
                     command.orderId(), order.getStatus());
             return;
