@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS sales_order
     total_amount       BIGINT      NOT NULL,
     currency           VARCHAR(3)  NOT NULL,
     version            BIGINT      NOT NULL,
-    pending_at         TIMESTAMPTZ NOT NULL,
+    order_created_at   TIMESTAMPTZ NOT NULL,
+    pending_at         TIMESTAMPTZ,
     paid_at            TIMESTAMPTZ,
     aborted_at         TIMESTAMPTZ,
     cancelled_at       TIMESTAMPTZ,
@@ -22,6 +23,9 @@ CREATE INDEX IF NOT EXISTS idx_sales_order_customer_id_created_at
 
 CREATE INDEX IF NOT EXISTS idx_sales_order_status_created_at
     ON sales_order (status, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_sales_order_status_order_created_at
+    ON sales_order (status, order_created_at);
 
 CREATE TABLE IF NOT EXISTS order_item
 (

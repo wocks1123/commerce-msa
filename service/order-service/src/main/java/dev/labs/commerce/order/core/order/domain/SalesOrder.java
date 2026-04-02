@@ -47,7 +47,10 @@ public class SalesOrder extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private List<OrderItem> items = new ArrayList<>();
 
-    @Column(name = "pending_at", nullable = false)
+    @Column(name = "order_created_at", nullable = false, updatable = false)
+    private Instant orderCreatedAt;
+
+    @Column(name = "pending_at")
     private Instant pendingAt;
 
     @Column(name = "paid_at")
@@ -66,27 +69,39 @@ public class SalesOrder extends BaseEntity {
     private Instant expiredAt;
 
 
-    public static SalesOrder create(long customerId, String currency, List<OrderItem> items, Instant pendingAt) {
+    public static SalesOrder create(long customerId, String currency, List<OrderItem> items, Instant orderCreatedAt) {
         Assert.notEmpty(items, "items must not be empty");
         Assert.hasText(currency, "currency must not be blank");
-        Assert.notNull(pendingAt, "pendingAt must not be null");
+        Assert.notNull(orderCreatedAt, "orderCreatedAt must not be null");
 
         SalesOrder order = new SalesOrder();
         order.orderId = UUID.randomUUID().toString();
         order.customerId = customerId;
         order.currency = currency;
-        order.status = OrderStatus.PENDING;
+        order.status = OrderStatus.CREATED;
         order.items = new ArrayList<>(items);
         order.totalPrice = items.stream().mapToLong(OrderItem::getLineAmount).sum();
         order.totalAmount = items.stream().mapToLong(OrderItem::getQuantity).sum();
-        order.pendingAt = pendingAt;
+        order.orderCreatedAt = orderCreatedAt;
         return order;
+    }
+
+    public void markAsPending(Instant pendingAt) {
+        Assert.notNull(pendingAt, "pendingAt must not be null");
+
+        if (this.status != OrderStatus.CREATED) {
+            throw new InvalidOrderStateException();
+        }
+        this.status = OrderStatus.PENDING;
+        this.pendingAt = pendingAt;
     }
 
     public void abort(Instant abortedAt) {
         Assert.notNull(abortedAt, "abortedAt must not be null");
 
-        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.CREATED && this.status != OrderStatus.PENDING) {
+            throw new InvalidOrderStateException();
+        }
         this.status = OrderStatus.ABORTED;
         this.abortedAt = abortedAt;
     }
@@ -94,7 +109,9 @@ public class SalesOrder extends BaseEntity {
     public void confirmPaid(Instant paidAt) {
         Assert.notNull(paidAt, "paidAt must not be null");
 
-        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.PENDING) {
+            throw new InvalidOrderStateException();
+        }
         this.status = OrderStatus.PAID;
         this.paidAt = paidAt;
     }
@@ -102,7 +119,9 @@ public class SalesOrder extends BaseEntity {
     public void cancel(Instant cancelledAt) {
         Assert.notNull(cancelledAt, "cancelledAt must not be null");
 
-        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.CREATED && this.status != OrderStatus.PENDING) {
+            throw new InvalidOrderStateException();
+        }
         this.status = OrderStatus.CANCELLED;
         this.cancelledAt = cancelledAt;
     }
@@ -110,7 +129,9 @@ public class SalesOrder extends BaseEntity {
     public void markAsFailed(Instant failedAt) {
         Assert.notNull(failedAt, "failedAt must not be null");
 
-        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.PENDING) {
+            throw new InvalidOrderStateException();
+        }
         this.status = OrderStatus.FAILED;
         this.failedAt = failedAt;
     }
@@ -118,7 +139,9 @@ public class SalesOrder extends BaseEntity {
     public void markAsExpired(Instant expiredAt) {
         Assert.notNull(expiredAt, "expiredAt must not be null");
 
-        if (this.status != OrderStatus.PENDING) throw new InvalidOrderStateException();
+        if (this.status != OrderStatus.CREATED && this.status != OrderStatus.PENDING) {
+            throw new InvalidOrderStateException();
+        }
         this.status = OrderStatus.EXPIRED;
         this.expiredAt = expiredAt;
     }
