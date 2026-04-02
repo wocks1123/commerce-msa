@@ -24,6 +24,9 @@ CREATE INDEX IF NOT EXISTS idx_sales_order_customer_id_created_at
 CREATE INDEX IF NOT EXISTS idx_sales_order_status_created_at
     ON sales_order (status, created_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_sales_order_status_order_created_at
+    ON sales_order (status, order_created_at);
+
 CREATE TABLE IF NOT EXISTS order_item
 (
     order_item_id BIGSERIAL PRIMARY KEY,
