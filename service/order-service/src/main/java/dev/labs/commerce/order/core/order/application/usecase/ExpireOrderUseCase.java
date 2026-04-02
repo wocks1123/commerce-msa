@@ -27,7 +27,7 @@ public class ExpireOrderUseCase {
         SalesOrder order = salesOrderRepository.findByIdWithLock(command.orderId())
                 .orElseThrow(OrderNotFoundException::new);
 
-        if (order.getStatus() != OrderStatus.PENDING) {
+        if (order.getStatus() != OrderStatus.CREATED && order.getStatus() != OrderStatus.PENDING) {
             log.warn("Order {} already in {} state, skipping expiry", command.orderId(), order.getStatus());
             return;
         }
