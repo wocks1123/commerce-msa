@@ -1,5 +1,7 @@
 package dev.labs.commerce.payment.core.payment.application.usecase;
 
+import dev.labs.commerce.payment.core.payment.application.event.PaymentEventPublisher;
+import dev.labs.commerce.payment.core.payment.application.event.PaymentInitializedEvent;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentResult;
 import dev.labs.commerce.payment.core.payment.domain.InventoryPort;
@@ -21,6 +23,7 @@ public class InitializePaymentUseCase {
 
     private final PaymentRepository paymentRepository;
     private final InventoryPort inventoryPort;
+    private final PaymentEventPublisher paymentEventPublisher;
 
     public InitializePaymentResult execute(InitializePaymentCommand command) {
         log.info("Initializing payment: orderId={}, amount={}, currency={}",
@@ -49,6 +52,12 @@ public class InitializePaymentUseCase {
         );
 
         Payment saved = paymentRepository.save(payment);
+
+        paymentEventPublisher.publishPaymentInitialized(new PaymentInitializedEvent(
+                saved.getPaymentId(),
+                saved.getOrderId(),
+                saved.getRequestedAt()
+        ));
 
         log.info("Payment initialized: paymentId={}, orderId={}, status={}",
                 saved.getPaymentId(), saved.getOrderId(), saved.getStatus());

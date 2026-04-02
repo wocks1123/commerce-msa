@@ -26,6 +26,9 @@ spring:
         binder:
           brokers: localhost:20023
       bindings:
+        payment-initialized-out-0:
+          destination: payment.initialized
+          content-type: application/json
         payment-approved-out-0:
           destination: payment.approved
           content-type: application/json
