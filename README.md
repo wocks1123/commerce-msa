@@ -46,7 +46,7 @@ sequenceDiagram
     C ->> OS: 1. POST /api/v1/orders
     OS ->> PS: 상품 유효성 검증 (REST)
     PS -->> OS: 상품 정보
-    OS -->> C: 주문 생성 (PENDING)
+    OS -->> C: 주문 생성 (CREATED)
     C ->> PAY: 2. POST /api/v1/payments
     PAY ->> IS: 재고 예약 (REST)
     alt 재고 부족
@@ -58,6 +58,9 @@ sequenceDiagram
     else 재고 예약 성공
         IS -->> PAY: 성공
         PAY ->> PAY: 결제 레코드 저장 (REQUESTED)
+        PAY ->> K: payment.initialized
+        K ->> OS: payment.initialized
+        OS ->> OS: 주문 상태 → PENDING
         PAY -->> C: PG 결제창 진입 정보 응답
     end
 
@@ -86,11 +89,12 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING: 주문 생성 (POST /orders)
+    [*] --> CREATED: 주문 생성 (POST /orders)
+    CREATED --> PENDING: 결제 초기화 (payment.initialized)
+    CREATED --> ABORTED: 재고 예약 실패 (stock.reservation.failed)
+    CREATED --> EXPIRED: 결제 미초기화 10분 경과 (스케줄러)
     PENDING --> PAID: 결제 승인 (payment.approved)
-    PENDING --> ABORTED: 재고 예약 실패 (stock.reservation.failed)
     PENDING --> ABORTED: 결제 실패 (payment.failed)
-    PENDING --> EXPIRED: 결제 미완료 10분 경과 (스케줄러)
     PENDING --> FAILED: 시스템 오류
 ```
 
@@ -143,6 +147,7 @@ dev.labs.commerce.{service}
 | `order.paid`               | order-service     | inventory-service |
 | `product.registered`       | product-service   | inventory-service |
 | `stock.reservation.failed` | inventory-service | order-service     |
+| `payment.initialized`      | payment-service   | order-service     |
 | `payment.approved`         | payment-service   | order-service     |
 | `payment.failed`           | payment-service   | order-service     |
 
@@ -150,7 +155,7 @@ dev.labs.commerce.{service}
 
 결제 초기화 과정에서 장애가 발생하면 주문이 `PENDING` 상태로 방치될 수 있다. 이를 처리하기 위해 order-service에 만료 스케줄러를 구현했다.
 
-- 1분 주기로 실행되며, `PENDING` 상태인 주문 중 생성 시각 기준 10분을 초과한 것을 만료 대상으로 조회
+- 1분 주기로 실행되며, `CREATED` 상태인 주문 중 생성 시각 기준 10분을 초과한 것을 만료 대상으로 조회
 - 대상 주문을 `EXPIRED`로 상태 전이하고 `order.expired` 이벤트 발행
 - inventory-service는 이벤트를 수신해 해당 주문의 재고 예약을 해제하며, 예약이 없는 경우 멱등하게 skip 처리
 
