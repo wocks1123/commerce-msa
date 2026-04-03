@@ -35,6 +35,9 @@ spring:
         payment-failed-out-0:
           destination: payment.failed
           content-type: application/json
+        payment-expired-out-0:
+          destination: payment.expired
+          content-type: application/json
 
 management:
   tracing:
@@ -67,3 +70,7 @@ service:
       base-url: http://localhost:20102
       connect-timeout: 3000
       read-timeout: 5000
+
+payment:
+  expiry:
+    requested-expiry-minutes: 30

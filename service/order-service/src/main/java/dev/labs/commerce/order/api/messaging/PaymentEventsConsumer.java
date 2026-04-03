@@ -4,14 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dev.labs.commerce.common.event.EventEnvelope;
 import dev.labs.commerce.common.event.EventPayloadConverter;
 import dev.labs.commerce.order.api.messaging.dto.PaymentApprovedEvent;
+import dev.labs.commerce.order.api.messaging.dto.PaymentExpiredEvent;
 import dev.labs.commerce.order.api.messaging.dto.PaymentFailedEvent;
 import dev.labs.commerce.order.api.messaging.dto.PaymentInitializedEvent;
 import dev.labs.commerce.order.core.order.application.usecase.AbortOrderByPaymentFailureUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.ConfirmPaidUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.ConfirmPaymentInitializedUseCase;
+import dev.labs.commerce.order.core.order.application.usecase.ExpireOrderUseCase;
 import dev.labs.commerce.order.core.order.application.usecase.dto.AbortOrderByPaymentFailureCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.ConfirmPaidCommand;
 import dev.labs.commerce.order.core.order.application.usecase.dto.ConfirmPaymentInitializedCommand;
+import dev.labs.commerce.order.core.order.application.usecase.dto.ExpireOrderCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,4 +65,17 @@ public class PaymentEventsConsumer {
             abortOrderByPaymentFailureUseCase.execute(new AbortOrderByPaymentFailureCommand(event.orderId()));
         };
     }
+
+    @Bean
+    public Consumer<EventEnvelope<JsonNode>> onPaymentExpired(
+            ExpireOrderUseCase expireOrderUseCase,
+            EventPayloadConverter eventPayloadConverter
+    ) {
+        return envelope -> {
+            PaymentExpiredEvent event = eventPayloadConverter.convert(envelope.payload(), PaymentExpiredEvent.class);
+            log.info("Received PaymentExpiredEvent: orderId={}", event.orderId());
+            expireOrderUseCase.execute(new ExpireOrderCommand(event.orderId()));
+        };
+    }
+
 }
