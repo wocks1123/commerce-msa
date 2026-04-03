@@ -1,7 +1,7 @@
 package dev.labs.commerce.payment.core.payment.application.usecase;
 
 import dev.labs.commerce.payment.core.payment.application.event.PaymentEventPublisher;
-import dev.labs.commerce.payment.core.payment.application.event.PaymentFailedEvent;
+import dev.labs.commerce.payment.core.payment.application.event.PaymentExpiredEvent;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.ExpirePaymentCommand;
 import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
@@ -26,15 +26,14 @@ public class ExpirePaymentUseCase {
         Payment payment = paymentRepository.findById(command.paymentId())
                 .orElseThrow(() -> new PaymentNotFoundException(command.paymentId()));
 
-        payment.fail("PAYMENT_EXPIRED", null, Instant.now());
+        Instant now = Instant.now();
+        payment.fail("PAYMENT_EXPIRED", null, now);
 
-        eventPublisher.publishPaymentFailed(new PaymentFailedEvent(
+        eventPublisher.publishPaymentExpired(new PaymentExpiredEvent(
                 payment.getPaymentId(),
                 payment.getOrderId(),
                 payment.getCustomerId(),
-                payment.getFailureCode(),
-                payment.getFailureMessage(),
-                payment.getFailedAt()
+                now
         ));
 
         log.info("Payment expired: paymentId={}", payment.getPaymentId());

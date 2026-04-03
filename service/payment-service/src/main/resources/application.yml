@@ -35,6 +35,9 @@ spring:
         payment-failed-out-0:
           destination: payment.failed
           content-type: application/json
+        payment-expired-out-0:
+          destination: payment.expired
+          content-type: application/json
 
 management:
   tracing:

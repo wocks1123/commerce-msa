@@ -8,4 +8,6 @@ public interface PaymentEventPublisher {
 
     void publishPaymentFailed(PaymentFailedEvent event);
 
+    void publishPaymentExpired(PaymentExpiredEvent event);
+
 }

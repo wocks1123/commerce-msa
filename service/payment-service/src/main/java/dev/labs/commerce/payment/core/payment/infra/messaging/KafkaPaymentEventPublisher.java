@@ -5,6 +5,7 @@ import dev.labs.commerce.common.event.EventPublisher;
 import dev.labs.commerce.payment.core.payment.application.event.PaymentEventPublisher;
 import dev.labs.commerce.payment.core.payment.application.event.PaymentInitializedEvent;
 import dev.labs.commerce.payment.core.payment.application.event.PaymentApprovedEvent;
+import dev.labs.commerce.payment.core.payment.application.event.PaymentExpiredEvent;
 import dev.labs.commerce.payment.core.payment.application.event.PaymentFailedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class KafkaPaymentEventPublisher implements PaymentEventPublisher {
     private static final String PAYMENT_INITIALIZED_BINDING = "payment-initialized-out-0";
     private static final String PAYMENT_APPROVED_BINDING = "payment-approved-out-0";
     private static final String PAYMENT_FAILED_BINDING = "payment-failed-out-0";
+    private static final String PAYMENT_EXPIRED_BINDING = "payment-expired-out-0";
 
     private final EventPublisher eventPublisher;
 
@@ -58,6 +60,20 @@ public class KafkaPaymentEventPublisher implements PaymentEventPublisher {
                         PAYMENT_FAILED_BINDING,
                         event.paymentId(),
                         EventEnvelope.of(event, PaymentFailedEvent.class)
+                );
+            }
+        });
+    }
+
+    @Override
+    public void publishPaymentExpired(PaymentExpiredEvent event) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                eventPublisher.publish(
+                        PAYMENT_EXPIRED_BINDING,
+                        event.paymentId(),
+                        EventEnvelope.of(event, PaymentExpiredEvent.class)
                 );
             }
         });
