@@ -95,6 +95,7 @@ stateDiagram-v2
     CREATED --> EXPIRED: 결제 미초기화 10분 경과 (스케줄러)
     PENDING --> PAID: 결제 승인 (payment.approved)
     PENDING --> ABORTED: 결제 실패 (payment.failed)
+    PENDING --> EXPIRED: 결제 만료 (payment.expired)
     PENDING --> FAILED: 시스템 오류
 ```
 
@@ -108,6 +109,7 @@ stateDiagram-v2
     IN_PROGRESS --> FAILED: PG 승인 실패
     IN_PROGRESS --> ABORTED: PG 결과 불확실
     REQUESTED --> FAILED: PG 직접 실패 콜백
+    REQUESTED --> FAILED: 결제 만료 (스케줄러)
     APPROVED --> CANCELED: 결제 취소
 ```
 
@@ -150,6 +152,7 @@ dev.labs.commerce.{service}
 | `payment.initialized`      | payment-service   | order-service     |
 | `payment.approved`         | payment-service   | order-service     |
 | `payment.failed`           | payment-service   | order-service     |
+| `payment.expired`          | payment-service   | order-service     |
 
 ### 주문 만료 스케줄러
 
@@ -160,6 +163,17 @@ dev.labs.commerce.{service}
 - inventory-service는 이벤트를 수신해 해당 주문의 재고 예약을 해제하며, 예약이 없는 경우 멱등하게 skip 처리
 
 만료 기준 시간은 `order.expiry.pending-expiry-minutes`(기본값 10분)로 조정 가능하다.
+
+### 결제 만료 스케줄러
+
+사용자가 PG 결제창에서 이탈하거나 시간 초과가 발생하면 결제 레코드가 `REQUESTED` 상태로 방치될 수 있다. 이를 처리하기 위해 payment-service에 만료 스케줄러를 구현했다.
+
+- 1분 주기로 실행되며, `REQUESTED` 상태인 결제 중 요청 시각 기준 30분을 초과한 것을 만료 대상으로 조회
+- 대상 결제를 `FAILED`(`failureCode=PAYMENT_EXPIRED`)로 상태 전이하고 `payment.expired` 이벤트 발행
+- order-service는 이벤트를 수신해 해당 주문을 `EXPIRED`로 전이하고 `order.expired` 이벤트 발행
+- inventory-service는 `order.expired`를 수신해 재고 예약을 해제
+
+만료 기준 시간은 `payment.expiry.requested-expiry-minutes`(기본값 30분)로 조정 가능하다.
 
 ### Mock PG 게이트웨이
 
