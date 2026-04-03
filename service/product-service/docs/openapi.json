@@ -134,7 +134,7 @@
         "tags": [
           "Product Master"
         ],
-        "summary": "List all products",
+        "summary": "List products by IDs",
         "operationId": "listProducts",
         "parameters": [
           {
@@ -149,11 +149,23 @@
                 "DISCONTINUED"
               ]
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Products listed successfully",
+            "description": "Products retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -293,19 +305,26 @@
         "type": "object",
         "properties": {
           "productName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "price": {
             "type": "integer",
             "format": "int64"
           },
           "currency": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "description": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "currency",
+          "price",
+          "productName"
+        ]
       },
       "ProductResponse": {
         "type": "object",
@@ -376,19 +395,26 @@
         "type": "object",
         "properties": {
           "productName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "price": {
             "type": "integer",
             "format": "int64"
           },
           "currency": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "description": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "currency",
+          "price",
+          "productName"
+        ]
       },
       "ChangeProductStatusRequest": {
         "type": "object",
@@ -401,7 +427,10 @@
               "DISCONTINUED"
             ]
           }
-        }
+        },
+        "required": [
+          "status"
+        ]
       },
       "ProductSummaryResponse": {
         "type": "object",
