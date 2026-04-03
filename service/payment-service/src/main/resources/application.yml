@@ -67,3 +67,7 @@ service:
       base-url: http://localhost:20102
       connect-timeout: 3000
       read-timeout: 5000
+
+payment:
+  expiry:
+    requested-expiry-minutes: 30

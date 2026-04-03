@@ -1,5 +1,6 @@
 package dev.labs.commerce.payment.api.scheduling;
 
+import dev.labs.commerce.payment.config.PaymentExpiryProperties;
 import dev.labs.commerce.payment.core.payment.application.usecase.ExpirePaymentUseCase;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.ExpirePaymentCommand;
 import dev.labs.commerce.payment.core.payment.domain.PaymentDao;
@@ -18,21 +19,20 @@ import java.util.List;
 @Slf4j
 public class PaymentExpiryScheduler {
 
-    private static final int EXPIRATION_THRESHOLD_MINUTES = 30;
-
     private final PaymentDao paymentDao;
     private final ExpirePaymentUseCase expirePaymentUseCase;
+    private final PaymentExpiryProperties properties;
 
     @Scheduled(fixedDelay = 60_000)
     public void expirePayments() {
-        Instant threshold = Instant.now().minus(EXPIRATION_THRESHOLD_MINUTES, ChronoUnit.MINUTES);
+        Instant threshold = Instant.now().minus(properties.getRequestedExpiryMinutes(), ChronoUnit.MINUTES);
         List<String> paymentIds = paymentDao.findIdsByStatusAndRequestedAtBefore(PaymentStatus.REQUESTED, threshold);
 
         if (paymentIds.isEmpty()) {
             return;
         }
 
-        log.info("Expiring {} payments older than {} minutes", paymentIds.size(), EXPIRATION_THRESHOLD_MINUTES);
+        log.info("Expiring {} payments older than {} minutes", paymentIds.size(), properties.getRequestedExpiryMinutes());
         paymentIds.forEach(paymentId -> {
             try {
                 expirePaymentUseCase.execute(new ExpirePaymentCommand(paymentId));
