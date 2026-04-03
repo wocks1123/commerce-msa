@@ -9,7 +9,7 @@ openApi {
     customBootRun {
         args.set(
             listOf(
-                "--server.port=20101",
+                "--server.port=20104",
                 "--spring.profiles.active=openapi"
             )
         )
