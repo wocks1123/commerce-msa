@@ -126,9 +126,9 @@ dev.labs.commerce.{service}
 ├─ api/ # HTTP 계층 (Controller, Request/Response DTO)
 ├─ core/
 │ └─ {domain}/
-│ ├─ application/ # UseCase (트랜잭션 경계), CommandService, QueryService
-│ ├─ domain/ # 모델, 도메인 예외, 이벤트, Repository 인터페이스
-│ └─ infra/ # Kafka Publisher/Consumer, QueryDSL
+│     ├─ application/ # UseCase (트랜잭션 경계), CommandService, QueryService
+│     ├─ domain/ # 모델, 도메인 예외, 이벤트, Repository 인터페이스
+│     └─ infra/ # Kafka Publisher/Consumer, QueryDSL
 ├─ config/ # Spring 빈 설정
 └─ *Application
 ```
