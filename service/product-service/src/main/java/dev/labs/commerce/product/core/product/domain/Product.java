@@ -54,7 +54,7 @@ public class Product extends BaseEntity {
         p.price = price;
         p.currency = currency;
         p.description = description;
-        p.productStatus = ProductStatus.INACTIVE; // 등록 후 활성화
+        p.productStatus = ProductStatus.DRAFT; // 등록 직후 검수/준비 상태
         return p;
     }
 
@@ -69,8 +69,11 @@ public class Product extends BaseEntity {
     }
 
     public void changeStatus(ProductStatus newStatus) {
-        if (this.productStatus == ProductStatus.DISCONTINUED && newStatus != ProductStatus.DISCONTINUED) {
-            throw new InvalidProductStatusException(ProductErrorCode.INVALID_PRODUCT_STATUS, "DISCONTINUED product cannot be reactivated.");
+        if (!this.productStatus.canTransitionTo(newStatus)) {
+            throw new InvalidProductStatusException(
+                    ProductErrorCode.INVALID_PRODUCT_STATUS,
+                    "Cannot change product status from " + this.productStatus + " to " + newStatus + "."
+            );
         }
         this.productStatus = newStatus;
     }
