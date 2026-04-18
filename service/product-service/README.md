@@ -9,12 +9,15 @@
 
 ## 2. 도메인 용어 사전 (Ubiquitous Language)
 
-| 용어                        | 정의                                       | 비고                                   |
-|:--------------------------|:-----------------------------------------|:-------------------------------------|
-| **Product (상품)**          | 판매의 최소 단위. 이름, 가격, 통화, 설명 정보를 가짐.        |                                      |
-| **ProductStatus (상품 상태)** | 상품의 노출 및 판매 가능 여부를 결정하는 상태.              | `DRAFT`, `INACTIVE`, `ACTIVE`, `DISCONTINUED` |
-| **Price (가격)**            | 상품의 판매 금액. 0원 이상이어야 함.                   | 음수 불가                                |
-| **Discontinued (판매 종료)** | 더 이상 판매하지 않으며, 정보 수정 및 재활성화가 불가능한 최종 상태. |                                      |
+| 용어                             | 정의                                                         | 비고                                                                                  |
+|:-------------------------------|:-----------------------------------------------------------|:------------------------------------------------------------------------------------|
+| **Product (상품)**               | 판매의 최소 단위. 이름, 정가·판매가, 통화, 카테고리, 판매 기간, 썸네일, 설명을 속성으로 가짐.  |                                                                                     |
+| **ProductStatus (상품 상태)**      | 상품의 노출 및 판매 가능 여부를 결정하는 상태.                                | `DRAFT`, `INACTIVE`, `ACTIVE`, `DISCONTINUED`                                       |
+| **ListPrice (정가)**             | 상품의 공식 소비자 가격. 0원 이상이어야 함.                                 | 음수 불가                                                                               |
+| **SellingPrice (판매가)**         | 실제 결제되는 가격. 0원 이상이며 `listPrice` 이하여야 함.                    | 할인 적용 결과가 이 값                                                                       |
+| **ProductCategory (카테고리)**     | 상품 분류.                                                     | `FIGURE`, `PLUSH`, `MODEL_KIT`, `TRADING_CARD`, `BOARD_GAME`, `DIECAST`, `PUZZLE`, `ACCESSORY`, `ETC` |
+| **SalePeriod (판매 기간)**         | 판매 시작/종료 시각(`saleStartAt`, `saleEndAt`). 선택 필드.             | 종료일은 과거일 수 없고, 시작일은 종료일보다 앞서야 함                                                     |
+| **Discontinued (판매 종료)**       | 더 이상 판매하지 않으며, 정보 수정 및 재활성화가 불가능한 최종 상태.                    |                                                                                     |
 
 ---
 
@@ -22,8 +25,10 @@
 
 ### 3.1 데이터 정합성 제약
 
-- **필수 정보**: 상품 이름, 가격, 통화(Currency), 설명은 등록 시 반드시 입력되어야 합니다. (`null` 또는 공백 불가)
-- **가격 제약**: 모든 상품의 가격(`price`)은 **0원 이상**이어야 합니다. (0원 포함, 음수 불가)
+- **필수 정보**: 상품 이름, 정가(`listPrice`), 판매가(`sellingPrice`), 통화(`currency`), 카테고리(`category`), 설명(`description`)은 등록 시 반드시 입력되어야 합니다. (`null` 또는 공백 불가)
+- **가격 제약**: `listPrice`와 `sellingPrice`는 각각 **0원 이상**이어야 하며, `sellingPrice`는 `listPrice`보다 클 수 없습니다.
+- **판매 기간 제약**: `saleEndAt`은 과거일 수 없고, `saleStartAt`이 지정된 경우 반드시 `saleEndAt`보다 앞서야 합니다. (둘 다 선택 필드)
+- **썸네일 URL**: `thumbnailUrl`은 선택 필드이며, 최대 500자까지 허용합니다.
 
 ### 3.2 상태 기반 수정 제한
 
@@ -61,18 +66,91 @@ stateDiagram-v2
 
 ### 상품 등록 (Create)
 
-- 입력: 이름, 가격, 통화, 설명
-- 결과: `DRAFT` 상태의 상품 생성
-- 검증: 모든 필드 필수 입력, 가격 >= 0
+- 입력: 이름, 정가, 판매가, 통화, 카테고리, 판매 시작/종료(선택), 썸네일 URL(선택), 설명
+- 결과: `DRAFT` 상태의 상품 생성 → `product.registered` 이벤트 발행
+- 검증: 필수 필드 입력, 정가/판매가 >= 0, 판매가 <= 정가, 판매 기간 유효성
 
 ### 상품 정보 수정 (Modify)
 
-- 대상: 이름, 가격, 통화, 설명
+- 대상: 이름, 정가, 판매가, 통화, 카테고리, 판매 시작/종료, 썸네일 URL, 설명
 - 조건: 현재 상태가 `DISCONTINUED`가 아닐 것
-- 결과: 상품 메타데이터 업데이트
+- 결과: 변경된 필드만 집합으로 반환. 현재 상태가 `ACTIVE` 또는 `INACTIVE`이고 변경 필드가 하나라도 있을 때 `product.modified` 이벤트 발행
+- 참고: `DRAFT` 상태의 수정은 외부에 노출된 적이 없으므로 이벤트를 발행하지 않음
 
 ### 상품 상태 변경 (Change Status)
 
 - 입력: 변경할 목표 상태 (`ProductStatus`)
 - 조건: 허용된 전이 규칙(`ProductStatus.canTransitionTo`)을 따라야 함. 현재 상태가 `DISCONTINUED`이면 다른 상태로 전이할 수 없고, `DRAFT`에서는 `INACTIVE`로 직접 전이할 수 없음
-- 결과: 상태 값 업데이트
+- 결과: 상태 값 업데이트 후 전이 결과에 따라 이벤트 발행 (아래 §6 참조)
+
+---
+
+## 6. 발행 이벤트 (Published Events)
+
+모든 이벤트는 트랜잭션 커밋 이후(`TransactionSynchronization#afterCommit`)에 발행되며, 파티션 키는 `productId`다.
+
+| Topic                  | 발행 시점                                       | 페이로드                                 |
+|------------------------|---------------------------------------------|--------------------------------------|
+| `product.registered`   | 상품 등록(`DRAFT` 생성) 직후                        | `productId`                          |
+| `product.activated`    | 상태가 `ACTIVE`로 전이된 시점 (`DRAFT→ACTIVE`, `INACTIVE→ACTIVE`) | 상품 전체 스냅샷 (카탈로그 노출용)                 |
+| `product.deactivated`  | 상태가 `INACTIVE`로 전이된 시점 (`ACTIVE→INACTIVE`)  | `productId`                          |
+| `product.discontinued` | `ACTIVE` 또는 `INACTIVE`에서 `DISCONTINUED`로 전이된 시점 | `productId`                          |
+| `product.modified`     | `ACTIVE`/`INACTIVE` 상태 상품의 필드가 실제로 변경된 경우   | 변경 후 상품 전체 스냅샷                       |
+
+**발행되지 않는 경우:**
+
+- `DRAFT → DISCONTINUED`: 공개된 적 없는 상품의 폐기이므로 `product.discontinued`를 발행하지 않음
+- 동일 상태로의 전이(`ACTIVE → ACTIVE` 등): 상태가 실제로 바뀌지 않았으므로 미발행
+- `DRAFT` 상태 상품의 정보 수정: 외부에 노출된 적이 없어 `product.modified` 미발행
+- `ModifyProduct` 호출 시 실제 변경된 필드가 없는 경우: `product.modified` 미발행
+
+### 상태 전이 및 이벤트 발행 시퀀스
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant PS as product-service
+    participant DB as PostgreSQL
+    participant K as Kafka
+
+    C ->> PS: POST /api/v1/products
+    activate PS
+    PS ->> DB: insert product (DRAFT)
+    PS -->> C: 201 Created
+    PS ->> K: product.registered (afterCommit)
+    deactivate PS
+
+    C ->> PS: PATCH /products/{id}/status {ACTIVE}
+    activate PS
+    PS ->> DB: update status (DRAFT → ACTIVE)
+    PS -->> C: 200 OK
+    PS ->> K: product.activated (afterCommit)
+    deactivate PS
+
+    C ->> PS: PUT /products/{id}
+    activate PS
+    PS ->> PS: Product.modify() → changedFields
+    alt changedFields ≠ ∅ && status ∈ {ACTIVE, INACTIVE}
+        PS ->> DB: update product
+        PS -->> C: 200 OK
+        PS ->> K: product.modified (afterCommit)
+    else 변경 없음 또는 DRAFT 상태
+        PS ->> DB: update product
+        PS -->> C: 200 OK
+    end
+    deactivate PS
+
+    C ->> PS: PATCH /products/{id}/status {INACTIVE}
+    activate PS
+    PS ->> DB: update status (ACTIVE → INACTIVE)
+    PS -->> C: 200 OK
+    PS ->> K: product.deactivated (afterCommit)
+    deactivate PS
+
+    C ->> PS: PATCH /products/{id}/status {DISCONTINUED}
+    activate PS
+    PS ->> DB: update status (INACTIVE → DISCONTINUED)
+    PS -->> C: 200 OK
+    PS ->> K: product.discontinued (afterCommit)
+    deactivate PS
+```
