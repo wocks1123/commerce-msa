@@ -42,7 +42,8 @@ public class ProductRestController {
     public ResponseEntity<ProductResponse> registerProduct(@RequestBody @Valid RegisterProductRequest request) {
         RegisterProductCommand command = new RegisterProductCommand(
                 request.productName(),
-                request.price(),
+                request.listPrice(),
+                request.sellingPrice(),
                 request.currency(),
                 request.description()
         );
@@ -60,7 +61,8 @@ public class ProductRestController {
         ModifyProductCommand command = new ModifyProductCommand(
                 productId,
                 request.productName(),
-                request.price(),
+                request.listPrice(),
+                request.sellingPrice(),
                 request.currency(),
                 request.description()
         );
@@ -116,7 +118,8 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
                 result.description(),
@@ -129,7 +132,8 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
                 result.description(),
@@ -142,7 +146,8 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
                 result.description(),
@@ -155,7 +160,8 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
                 result.description(),
@@ -168,7 +174,8 @@ public class ProductRestController {
         return new ProductSummaryResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus()
         );
@@ -178,7 +185,8 @@ public class ProductRestController {
         return new ProductSummaryResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus()
         );

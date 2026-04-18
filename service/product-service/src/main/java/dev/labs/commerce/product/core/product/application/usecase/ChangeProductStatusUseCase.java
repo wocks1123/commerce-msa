@@ -32,7 +32,8 @@ public class ChangeProductStatusUseCase {
         return new ChangeProductStatusResult(
                 updatedProduct.getProductId(),
                 updatedProduct.getProductName(),
-                updatedProduct.getPrice(),
+                updatedProduct.getListPrice(),
+                updatedProduct.getSellingPrice(),
                 updatedProduct.getCurrency(),
                 updatedProduct.getProductStatus(),
                 updatedProduct.getDescription(),

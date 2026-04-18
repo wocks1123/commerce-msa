@@ -2,11 +2,12 @@ package dev.labs.commerce.product.api.http.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 public record RegisterProductRequest(
         @NotBlank String productName,
-        @NotNull @Positive Long price,
+        @NotNull @PositiveOrZero Long listPrice,
+        @NotNull @PositiveOrZero Long sellingPrice,
         @NotBlank String currency,
         String description
 ) {

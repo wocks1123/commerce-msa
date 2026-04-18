@@ -25,7 +25,8 @@ public class ModifyProductUseCase {
         // Modify product using domain method
         product.modify(
                 command.productName(),
-                command.price(),
+                command.listPrice(),
+                command.sellingPrice(),
                 command.currency(),
                 command.description()
         );
@@ -37,7 +38,8 @@ public class ModifyProductUseCase {
         return new ModifyProductResult(
                 updatedProduct.getProductId(),
                 updatedProduct.getProductName(),
-                updatedProduct.getPrice(),
+                updatedProduct.getListPrice(),
+                updatedProduct.getSellingPrice(),
                 updatedProduct.getCurrency(),
                 updatedProduct.getProductStatus(),
                 updatedProduct.getDescription(),

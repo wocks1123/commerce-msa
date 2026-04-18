@@ -5,7 +5,8 @@ import dev.labs.commerce.product.core.product.domain.ProductStatus;
 public record ListProductsResult(
         Long productId,
         String productName,
-        Long price,
+        Long listPrice,
+        Long sellingPrice,
         String currency,
         ProductStatus productStatus
 ) {

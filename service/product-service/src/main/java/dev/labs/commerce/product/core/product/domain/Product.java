@@ -29,8 +29,11 @@ public class Product extends BaseEntity {
     @Column(name = "product_name", nullable = false, length = 200)
     private String productName;
 
-    @Column(name = "price_amount", nullable = false)
-    private Long price;
+    @Column(name = "list_price", nullable = false)
+    private Long listPrice;
+
+    @Column(name = "selling_price", nullable = false)
+    private Long sellingPrice;
 
     @Column(name = "currency", nullable = false, length = 3)
     private String currency;
@@ -43,27 +46,30 @@ public class Product extends BaseEntity {
     private String description;
 
 
-    public static Product create(String name, long price, String currency, String description) {
+    public static Product create(String name, long listPrice, long sellingPrice, String currency, String description) {
         Assert.hasText(name, "productName must not be empty");
-        Assert.isTrue(price >= 0, "price must be zero or greater");
+        validatePrices(listPrice, sellingPrice);
         Assert.hasText(currency, "currency must not be empty");
         Assert.hasText(description, "description must not be empty");
 
         Product p = new Product();
         p.productName = name;
-        p.price = price;
+        p.listPrice = listPrice;
+        p.sellingPrice = sellingPrice;
         p.currency = currency;
         p.description = description;
         p.productStatus = ProductStatus.DRAFT; // 등록 직후 검수/준비 상태
         return p;
     }
 
-    public void modify(String name, long priceAmount, String currency, String description) {
+    public void modify(String name, long listPrice, long sellingPrice, String currency, String description) {
         if (this.productStatus == ProductStatus.DISCONTINUED) {
             throw new InvalidProductStatusException(ProductErrorCode.INVALID_PRODUCT_STATUS, "DISCONTINUED product cannot be updated.");
         }
+        validatePrices(listPrice, sellingPrice);
         this.productName = name;
-        this.price = priceAmount;
+        this.listPrice = listPrice;
+        this.sellingPrice = sellingPrice;
         this.currency = currency;
         this.description = description;
     }
@@ -76,6 +82,12 @@ public class Product extends BaseEntity {
             );
         }
         this.productStatus = newStatus;
+    }
+
+    private static void validatePrices(long listPrice, long sellingPrice) {
+        Assert.isTrue(listPrice >= 0, "listPrice must be zero or greater");
+        Assert.isTrue(sellingPrice >= 0, "sellingPrice must be zero or greater");
+        Assert.isTrue(sellingPrice <= listPrice, "sellingPrice must be less than or equal to listPrice");
     }
 
 }

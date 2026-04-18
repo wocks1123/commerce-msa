@@ -7,7 +7,8 @@ import java.time.Instant;
 public record GetProductResult(
         Long productId,
         String productName,
-        Long price,
+        Long listPrice,
+        Long sellingPrice,
         String currency,
         ProductStatus productStatus,
         String description,

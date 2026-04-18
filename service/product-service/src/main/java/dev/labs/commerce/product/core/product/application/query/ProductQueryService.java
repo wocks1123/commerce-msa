@@ -27,7 +27,8 @@ public class ProductQueryService {
         return new GetProductResult(
                 product.getProductId(),
                 product.getProductName(),
-                product.getPrice(),
+                product.getListPrice(),
+                product.getSellingPrice(),
                 product.getCurrency(),
                 product.getProductStatus(),
                 product.getDescription(),
@@ -54,7 +55,8 @@ public class ProductQueryService {
                 .map(p -> new ListProductsResult(
                         p.getProductId(),
                         p.getProductName(),
-                        p.getPrice(),
+                        p.getListPrice(),
+                        p.getSellingPrice(),
                         p.getCurrency(),
                         p.getProductStatus()
                 ))
@@ -67,7 +69,8 @@ public class ProductQueryService {
                 .map(p -> new ListProductsByIdsResult(
                         p.getProductId(),
                         p.getProductName(),
-                        p.getPrice(),
+                        p.getListPrice(),
+                        p.getSellingPrice(),
                         p.getCurrency(),
                         p.getProductStatus()
                 ))

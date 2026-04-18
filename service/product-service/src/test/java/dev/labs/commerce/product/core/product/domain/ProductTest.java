@@ -20,16 +20,18 @@ class ProductTest {
         void createProduct_withValidInfo_startsAsDraft() {
             // given
             String name = "테스트 상품";
-            long price = 10000L;
+            long listPrice = 10000L;
+            long sellingPrice = 9000L;
             String currency = "KRW";
             String description = "테스트 상품 설명";
 
             // when
-            Product product = Product.create(name, price, currency, description);
+            Product product = Product.create(name, listPrice, sellingPrice, currency, description);
 
             // then
             assertThat(product.getProductName()).isEqualTo(name);
-            assertThat(product.getPrice()).isEqualTo(price);
+            assertThat(product.getListPrice()).isEqualTo(listPrice);
+            assertThat(product.getSellingPrice()).isEqualTo(sellingPrice);
             assertThat(product.getCurrency()).isEqualTo(currency);
             assertThat(product.getDescription()).isEqualTo(description);
             assertThat(product.getProductStatus()).isEqualTo(ProductStatus.DRAFT);
@@ -42,32 +44,47 @@ class ProductTest {
             String blankName = " ";
 
             // when & then
-            assertThatThrownBy(() -> Product.create(blankName, 10000L, "KRW", "설명"))
+            assertThatThrownBy(() -> Product.create(blankName, 10000L, 10000L, "KRW", "설명"))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
-        @DisplayName("가격이 음수이면 등록할 수 없다")
-        void createProduct_withNegativePrice_throwsException() {
-            // given
-            long negativePrice = -1L;
-
-            // when & then
-            assertThatThrownBy(() -> Product.create("상품명", negativePrice, "KRW", "설명"))
+        @DisplayName("정가가 음수이면 등록할 수 없다")
+        void createProduct_withNegativeListPrice_throwsException() {
+            assertThatThrownBy(() -> Product.create("상품명", -1L, 0L, "KRW", "설명"))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
-        @DisplayName("가격이 0원인 상품은 등록할 수 있다")
-        void createProduct_withZeroPrice_succeeds() {
-            // given
-            long zeroPrice = 0L;
+        @DisplayName("판매가가 음수이면 등록할 수 없다")
+        void createProduct_withNegativeSellingPrice_throwsException() {
+            assertThatThrownBy(() -> Product.create("상품명", 10000L, -1L, "KRW", "설명"))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
 
-            // when
-            Product product = Product.create("상품명", zeroPrice, "KRW", "설명");
+        @Test
+        @DisplayName("판매가가 정가보다 크면 등록할 수 없다")
+        void createProduct_whenSellingPriceGreaterThanListPrice_throwsException() {
+            assertThatThrownBy(() -> Product.create("상품명", 10000L, 11000L, "KRW", "설명"))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
 
-            // then
-            assertThat(product.getPrice()).isZero();
+        @Test
+        @DisplayName("판매가가 정가와 같으면 등록할 수 있다")
+        void createProduct_whenSellingPriceEqualsListPrice_succeeds() {
+            Product product = Product.create("상품명", 10000L, 10000L, "KRW", "설명");
+
+            assertThat(product.getListPrice()).isEqualTo(10000L);
+            assertThat(product.getSellingPrice()).isEqualTo(10000L);
+        }
+
+        @Test
+        @DisplayName("정가와 판매가가 모두 0원인 상품은 등록할 수 있다")
+        void createProduct_withZeroPrices_succeeds() {
+            Product product = Product.create("상품명", 0L, 0L, "KRW", "설명");
+
+            assertThat(product.getListPrice()).isZero();
+            assertThat(product.getSellingPrice()).isZero();
         }
 
         @Test
@@ -77,7 +94,7 @@ class ProductTest {
             String blankCurrency = " ";
 
             // when & then
-            assertThatThrownBy(() -> Product.create("상품명", 10000L, blankCurrency, "설명"))
+            assertThatThrownBy(() -> Product.create("상품명", 10000L, 10000L, blankCurrency, "설명"))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -88,7 +105,7 @@ class ProductTest {
             String blankDescription = " ";
 
             // when & then
-            assertThatThrownBy(() -> Product.create("상품명", 10000L, "KRW", blankDescription))
+            assertThatThrownBy(() -> Product.create("상품명", 10000L, 10000L, "KRW", blankDescription))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -101,14 +118,15 @@ class ProductTest {
         @DisplayName("DRAFT 상품의 정보를 수정할 수 있다")
         void modifyProduct_whenDraft_succeeds() {
             // given
-            Product product = Product.create("기존 상품명", 10000L, "KRW", "기존 설명");
+            Product product = Product.create("기존 상품명", 10000L, 9000L, "KRW", "기존 설명");
 
             // when
-            product.modify("새 상품명", 20000L, "KRW", "새 설명");
+            product.modify("새 상품명", 20000L, 18000L, "KRW", "새 설명");
 
             // then
             assertThat(product.getProductName()).isEqualTo("새 상품명");
-            assertThat(product.getPrice()).isEqualTo(20000L);
+            assertThat(product.getListPrice()).isEqualTo(20000L);
+            assertThat(product.getSellingPrice()).isEqualTo(18000L);
             assertThat(product.getDescription()).isEqualTo("새 설명");
         }
 
@@ -116,15 +134,16 @@ class ProductTest {
         @DisplayName("판매 중인 상품의 정보를 수정할 수 있다")
         void modifyProduct_whenActive_succeeds() {
             // given
-            Product product = Product.create("기존 상품명", 10000L, "KRW", "기존 설명");
+            Product product = Product.create("기존 상품명", 10000L, 9000L, "KRW", "기존 설명");
             product.changeStatus(ProductStatus.ACTIVE);
 
             // when
-            product.modify("새 상품명", 20000L, "KRW", "새 설명");
+            product.modify("새 상품명", 20000L, 18000L, "KRW", "새 설명");
 
             // then
             assertThat(product.getProductName()).isEqualTo("새 상품명");
-            assertThat(product.getPrice()).isEqualTo(20000L);
+            assertThat(product.getListPrice()).isEqualTo(20000L);
+            assertThat(product.getSellingPrice()).isEqualTo(18000L);
             assertThat(product.getDescription()).isEqualTo("새 설명");
         }
 
@@ -132,16 +151,17 @@ class ProductTest {
         @DisplayName("판매 중단된 상품의 정보도 수정할 수 있다")
         void modifyProduct_whenInactive_succeeds() {
             // given
-            Product product = Product.create("기존 상품명", 10000L, "KRW", "기존 설명");
+            Product product = Product.create("기존 상품명", 10000L, 9000L, "KRW", "기존 설명");
             product.changeStatus(ProductStatus.ACTIVE);
             product.changeStatus(ProductStatus.INACTIVE);
 
             // when
-            product.modify("새 상품명", 20000L, "KRW", "새 설명");
+            product.modify("새 상품명", 20000L, 18000L, "KRW", "새 설명");
 
             // then
             assertThat(product.getProductName()).isEqualTo("새 상품명");
-            assertThat(product.getPrice()).isEqualTo(20000L);
+            assertThat(product.getListPrice()).isEqualTo(20000L);
+            assertThat(product.getSellingPrice()).isEqualTo(18000L);
             assertThat(product.getDescription()).isEqualTo("새 설명");
         }
 
@@ -149,12 +169,23 @@ class ProductTest {
         @DisplayName("판매 종료된 상품은 정보를 수정할 수 없다")
         void modifyProduct_whenDiscontinued_throwsException() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = Product.create("상품명", 10000L, 9000L, "KRW", "설명");
             product.changeStatus(ProductStatus.DISCONTINUED);
 
             // when & then
-            assertThatThrownBy(() -> product.modify("새 상품명", 20000L, "KRW", "새 설명"))
+            assertThatThrownBy(() -> product.modify("새 상품명", 20000L, 18000L, "KRW", "새 설명"))
                     .isInstanceOf(InvalidProductStatusException.class);
+        }
+
+        @Test
+        @DisplayName("수정 시 판매가가 정가보다 크면 예외가 발생한다")
+        void modifyProduct_whenSellingPriceGreaterThanListPrice_throwsException() {
+            // given
+            Product product = Product.create("상품명", 10000L, 9000L, "KRW", "설명");
+
+            // when & then
+            assertThatThrownBy(() -> product.modify("상품명", 10000L, 11000L, "KRW", "설명"))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
@@ -166,7 +197,7 @@ class ProductTest {
         @DisplayName("DRAFT 상품을 판매 활성화할 수 있다")
         void changeStatus_fromDraftToActive_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
 
             // when
             product.changeStatus(ProductStatus.ACTIVE);
@@ -179,7 +210,7 @@ class ProductTest {
         @DisplayName("DRAFT 상품을 판매 종료 처리할 수 있다")
         void changeStatus_fromDraftToDiscontinued_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
 
             // when
             product.changeStatus(ProductStatus.DISCONTINUED);
@@ -192,7 +223,7 @@ class ProductTest {
         @DisplayName("DRAFT 상품을 INACTIVE로 바로 전이할 수 없다")
         void changeStatus_fromDraftToInactive_throwsException() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
 
             // when & then
             assertThatThrownBy(() -> product.changeStatus(ProductStatus.INACTIVE))
@@ -203,7 +234,7 @@ class ProductTest {
         @DisplayName("판매 중인 상품을 판매 중단할 수 있다")
         void changeStatus_fromActiveToInactive_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.ACTIVE);
 
             // when
@@ -217,7 +248,7 @@ class ProductTest {
         @DisplayName("판매 중인 상품을 판매 종료 처리할 수 있다")
         void changeStatus_fromActiveToDiscontinued_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.ACTIVE);
 
             // when
@@ -231,7 +262,7 @@ class ProductTest {
         @DisplayName("판매 중인 상품을 DRAFT로 되돌릴 수 없다")
         void changeStatus_fromActiveToDraft_throwsException() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.ACTIVE);
 
             // when & then
@@ -243,7 +274,7 @@ class ProductTest {
         @DisplayName("판매 중단된 상품을 재판매할 수 있다")
         void changeStatus_fromInactiveToActive_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.ACTIVE);
             product.changeStatus(ProductStatus.INACTIVE);
 
@@ -258,7 +289,7 @@ class ProductTest {
         @DisplayName("판매 중단된 상품을 판매 종료 처리할 수 있다")
         void changeStatus_fromInactiveToDiscontinued_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.ACTIVE);
             product.changeStatus(ProductStatus.INACTIVE);
 
@@ -273,7 +304,7 @@ class ProductTest {
         @DisplayName("판매 중단된 상품을 DRAFT로 되돌릴 수 없다")
         void changeStatus_fromInactiveToDraft_throwsException() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.ACTIVE);
             product.changeStatus(ProductStatus.INACTIVE);
 
@@ -286,7 +317,7 @@ class ProductTest {
         @DisplayName("판매 종료된 상품은 다시 판매 활성화할 수 없다")
         void changeStatus_fromDiscontinuedToActive_throwsException() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.DISCONTINUED);
 
             // when & then
@@ -298,7 +329,7 @@ class ProductTest {
         @DisplayName("판매 종료된 상품은 비활성으로도 되돌릴 수 없다")
         void changeStatus_fromDiscontinuedToInactive_throwsException() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.DISCONTINUED);
 
             // when & then
@@ -310,7 +341,7 @@ class ProductTest {
         @DisplayName("판매 종료 상태를 판매 종료로 다시 설정해도 예외가 발생하지 않는다")
         void changeStatus_fromDiscontinuedToDiscontinued_succeeds() {
             // given
-            Product product = Product.create("상품명", 10000L, "KRW", "설명");
+            Product product = newDraftProduct();
             product.changeStatus(ProductStatus.DISCONTINUED);
 
             // when
@@ -318,6 +349,10 @@ class ProductTest {
 
             // then
             assertThat(product.getProductStatus()).isEqualTo(ProductStatus.DISCONTINUED);
+        }
+
+        private Product newDraftProduct() {
+            return Product.create("상품명", 10000L, 9000L, "KRW", "설명");
         }
     }
 }
