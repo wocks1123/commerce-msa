@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -96,7 +99,7 @@ public class Product extends BaseEntity {
         return p;
     }
 
-    public void modify(
+    public Set<String> modify(
             String name,
             long listPrice,
             long sellingPrice,
@@ -115,15 +118,44 @@ public class Product extends BaseEntity {
         validateSalePeriod(saleStartAt, saleEndAt);
         validateThumbnailUrl(thumbnailUrl);
 
-        this.productName = name;
-        this.listPrice = listPrice;
-        this.sellingPrice = sellingPrice;
-        this.currency = currency;
-        this.category = category;
-        this.saleStartAt = saleStartAt;
-        this.saleEndAt = saleEndAt;
-        this.thumbnailUrl = thumbnailUrl;
-        this.description = description;
+        Set<String> changedFields = new LinkedHashSet<>();
+        if (!Objects.equals(this.productName, name)) {
+            changedFields.add("productName");
+            this.productName = name;
+        }
+        if (!Objects.equals(this.listPrice, listPrice)) {
+            changedFields.add("listPrice");
+            this.listPrice = listPrice;
+        }
+        if (!Objects.equals(this.sellingPrice, sellingPrice)) {
+            changedFields.add("sellingPrice");
+            this.sellingPrice = sellingPrice;
+        }
+        if (!Objects.equals(this.currency, currency)) {
+            changedFields.add("currency");
+            this.currency = currency;
+        }
+        if (this.category != category) {
+            changedFields.add("category");
+            this.category = category;
+        }
+        if (!Objects.equals(this.saleStartAt, saleStartAt)) {
+            changedFields.add("saleStartAt");
+            this.saleStartAt = saleStartAt;
+        }
+        if (!Objects.equals(this.saleEndAt, saleEndAt)) {
+            changedFields.add("saleEndAt");
+            this.saleEndAt = saleEndAt;
+        }
+        if (!Objects.equals(this.thumbnailUrl, thumbnailUrl)) {
+            changedFields.add("thumbnailUrl");
+            this.thumbnailUrl = thumbnailUrl;
+        }
+        if (!Objects.equals(this.description, description)) {
+            changedFields.add("description");
+            this.description = description;
+        }
+        return changedFields;
     }
 
     public void changeStatus(ProductStatus newStatus) {

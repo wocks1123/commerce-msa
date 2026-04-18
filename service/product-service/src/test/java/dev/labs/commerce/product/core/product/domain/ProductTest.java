@@ -8,6 +8,7 @@ import dev.labs.commerce.product.core.product.domain.error.InvalidProductStatusE
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -243,6 +244,75 @@ class ProductTest {
                     "상품명", 10000L, 10000L, "KRW",
                     ProductCategory.FIGURE, null, past, null, "설명"
             )).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("모든 필드를 새 값으로 수정하면 변경된 필드 이름이 모두 반환된다")
+        void modifyProduct_whenAllFieldsChanged_returnsAllFieldNames() {
+            Product product = newDraftProduct();
+            Instant newStart = Instant.now().plus(2, ChronoUnit.DAYS);
+            Instant newEnd = Instant.now().plus(20, ChronoUnit.DAYS);
+
+            Set<String> changedFields = product.modify(
+                    "새 상품명", 20000L, 18000L, "USD",
+                    ProductCategory.MODEL_KIT, newStart, newEnd, "https://cdn.example.com/new.jpg",
+                    "새 설명"
+            );
+
+            assertThat(changedFields).containsExactlyInAnyOrder(
+                    "productName", "listPrice", "sellingPrice", "currency",
+                    "category", "saleStartAt", "saleEndAt", "thumbnailUrl", "description"
+            );
+        }
+
+        @Test
+        @DisplayName("동일한 값으로 수정하면 변경 필드셋이 비어있다")
+        void modifyProduct_whenNoFieldChanged_returnsEmptySet() {
+            Product product = Product.create(
+                    "상품명", 10000L, 9000L, "KRW",
+                    ProductCategory.FIGURE, null, null, null, "설명"
+            );
+
+            Set<String> changedFields = product.modify(
+                    "상품명", 10000L, 9000L, "KRW",
+                    ProductCategory.FIGURE, null, null, null, "설명"
+            );
+
+            assertThat(changedFields).isEmpty();
+        }
+
+        @Test
+        @DisplayName("일부 필드만 변경되면 해당 필드 이름만 반환된다")
+        void modifyProduct_whenSomeFieldsChanged_returnsOnlyChangedFieldNames() {
+            Product product = Product.create(
+                    "상품명", 10000L, 9000L, "KRW",
+                    ProductCategory.FIGURE, null, null, null, "설명"
+            );
+
+            Set<String> changedFields = product.modify(
+                    "새 상품명", 10000L, 8000L, "KRW",
+                    ProductCategory.FIGURE, null, null, null, "설명"
+            );
+
+            assertThat(changedFields).containsExactlyInAnyOrder("productName", "sellingPrice");
+        }
+
+        @Test
+        @DisplayName("nullable 필드를 null에서 값으로 바꾸면 변경으로 감지된다")
+        void modifyProduct_whenNullableFieldChangesFromNullToValue_isDetected() {
+            Product product = Product.create(
+                    "상품명", 10000L, 10000L, "KRW",
+                    ProductCategory.FIGURE, null, null, null, "설명"
+            );
+            Instant newStart = Instant.now().plus(1, ChronoUnit.DAYS);
+            Instant newEnd = Instant.now().plus(10, ChronoUnit.DAYS);
+
+            Set<String> changedFields = product.modify(
+                    "상품명", 10000L, 10000L, "KRW",
+                    ProductCategory.FIGURE, newStart, newEnd, "https://cdn.example.com/thumb.jpg", "설명"
+            );
+
+            assertThat(changedFields).containsExactlyInAnyOrder("saleStartAt", "saleEndAt", "thumbnailUrl");
         }
     }
 
