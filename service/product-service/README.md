@@ -12,9 +12,9 @@
 | 용어                        | 정의                                       | 비고                                   |
 |:--------------------------|:-----------------------------------------|:-------------------------------------|
 | **Product (상품)**          | 판매의 최소 단위. 이름, 가격, 통화, 설명 정보를 가짐.        |                                      |
-| **ProductStatus (상품 상태)** | 상품의 노출 및 판매 가능 여부를 결정하는 상태.              | `INACTIVE`, `ACTIVE`, `DISCONTINUED` |
+| **ProductStatus (상품 상태)** | 상품의 노출 및 판매 가능 여부를 결정하는 상태.              | `DRAFT`, `INACTIVE`, `ACTIVE`, `DISCONTINUED` |
 | **Price (가격)**            | 상품의 판매 금액. 0원 이상이어야 함.                   | 음수 불가                                |
-| **Discontinued (단종)**     | 더 이상 판매하지 않으며, 정보 수정 및 재활성화가 불가능한 최종 상태. |                                      |
+| **Discontinued (판매 종료)** | 더 이상 판매하지 않으며, 정보 수정 및 재활성화가 불가능한 최종 상태. |                                      |
 
 ---
 
@@ -28,7 +28,8 @@
 ### 3.2 상태 기반 수정 제한
 
 - **수정 불가**: 상품 상태가 **`DISCONTINUED`**인 경우, 상품 이름, 가격 등 모든 기본 정보의 수정을 차단합니다.
-- **재활성화 불가**: 한 번 `DISCONTINUED` 상태로 변경된 상품은 다시 `ACTIVE` 또는 `INACTIVE` 상태로 되돌릴 수 없습니다. (영구적 단종)
+- **재활성화 불가**: 한 번 `DISCONTINUED` 상태로 변경된 상품은 다시 `ACTIVE` 또는 `INACTIVE` 상태로 되돌릴 수 없습니다. (영구적 판매 종료)
+- **`DRAFT → INACTIVE` 금지**: `INACTIVE`는 "한 번 이상 활성화됐던 상품이 중단된 상태"를 의미하므로, 아직 한 번도 판매되지 않은 `DRAFT` 상태에서는 `INACTIVE`로 바로 전이할 수 없습니다.
 
 ---
 
@@ -38,17 +39,20 @@
 
 ```mermaid
 stateDiagram-v2
-    [*] --> INACTIVE: 상품 등록 (Initial)
-    INACTIVE --> ACTIVE: 판매 시작 (활성화)
-    ACTIVE --> INACTIVE: 임시 중단 (비활성화)
-    INACTIVE --> DISCONTINUED: 판매 종료 (단종)
-    ACTIVE --> DISCONTINUED: 즉시 단종
+    [*] --> DRAFT: 상품 등록 (Initial)
+    DRAFT --> ACTIVE: 검수 완료 후 판매 시작
+    DRAFT --> DISCONTINUED: 검수 중 취소/폐기
+    ACTIVE --> INACTIVE: 수동 판매 중단
+    ACTIVE --> DISCONTINUED: 즉시 판매 종료
+    INACTIVE --> ACTIVE: 판매 재개
+    INACTIVE --> DISCONTINUED: 판매 종료
     DISCONTINUED --> [*]: 최종 상태 (수정/복구 불가)
 ```
 
-1. **INACTIVE (비활성화)**: 최초 등록 시의 기본 상태입니다. 내부 검수 중이거나 일시적으로 판매를 중단할 때 사용합니다.
-2. **ACTIVE (활성화)**: 사용자에게 노출되며 실제 주문이 가능한 판매 중 상태입니다.
-3. **DISCONTINUED (단종)**: 상품의 판매가 영구적으로 종료된 상태입니다.
+1. **DRAFT (임시 저장)**: 최초 등록 시의 기본 상태입니다. 내부 검수 및 판매 준비 중인 단계로, 아직 한 번도 판매된 적이 없는 상품을 의미합니다.
+2. **INACTIVE (판매 중단)**: 한 번 이상 활성화됐던 상품의 판매를 일시 중단한 상태입니다. `ACTIVE`에서만 진입할 수 있습니다.
+3. **ACTIVE (판매 중)**: 사용자에게 노출되며 실제 주문이 가능한 판매 중 상태입니다.
+4. **DISCONTINUED (판매 종료)**: 상품의 판매가 영구적으로 종료된 상태입니다.
     - **핵심 로직**: `DISCONTINUED` 상태는 터미널(Terminal) 상태로, 이 상태에 진입하면 상태 복구가 불가능하며 정보 수정도 제한됩니다.
 
 ---
@@ -58,7 +62,7 @@ stateDiagram-v2
 ### 상품 등록 (Create)
 
 - 입력: 이름, 가격, 통화, 설명
-- 결과: `INACTIVE` 상태의 상품 생성
+- 결과: `DRAFT` 상태의 상품 생성
 - 검증: 모든 필드 필수 입력, 가격 >= 0
 
 ### 상품 정보 수정 (Modify)
@@ -70,5 +74,5 @@ stateDiagram-v2
 ### 상품 상태 변경 (Change Status)
 
 - 입력: 변경할 목표 상태 (`ProductStatus`)
-- 조건: 현재 상태가 `DISCONTINUED`인 경우 다른 상태로의 변경 차단
+- 조건: 허용된 전이 규칙(`ProductStatus.canTransitionTo`)을 따라야 함. 현재 상태가 `DISCONTINUED`이면 다른 상태로 전이할 수 없고, `DRAFT`에서는 `INACTIVE`로 직접 전이할 수 없음
 - 결과: 상태 값 업데이트

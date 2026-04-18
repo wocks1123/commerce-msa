@@ -21,8 +21,13 @@ public class RegisterProductUseCase {
     public RegisterProductResult execute(RegisterProductCommand command) {
         Product product = Product.create(
                 command.productName(),
-                command.price(),
+                command.listPrice(),
+                command.sellingPrice(),
                 command.currency(),
+                command.category(),
+                command.saleStartAt(),
+                command.saleEndAt(),
+                command.thumbnailUrl(),
                 command.description()
         );
 
@@ -35,9 +40,14 @@ public class RegisterProductUseCase {
         return new RegisterProductResult(
                 savedProduct.getProductId(),
                 savedProduct.getProductName(),
-                savedProduct.getPrice(),
+                savedProduct.getListPrice(),
+                savedProduct.getSellingPrice(),
                 savedProduct.getCurrency(),
                 savedProduct.getProductStatus(),
+                savedProduct.getCategory(),
+                savedProduct.getSaleStartAt(),
+                savedProduct.getSaleEndAt(),
+                savedProduct.getThumbnailUrl(),
                 savedProduct.getDescription(),
                 savedProduct.getCreatedAt(),
                 savedProduct.getUpdatedAt()

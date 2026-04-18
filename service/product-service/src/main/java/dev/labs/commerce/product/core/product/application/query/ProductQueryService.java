@@ -27,9 +27,14 @@ public class ProductQueryService {
         return new GetProductResult(
                 product.getProductId(),
                 product.getProductName(),
-                product.getPrice(),
+                product.getListPrice(),
+                product.getSellingPrice(),
                 product.getCurrency(),
                 product.getProductStatus(),
+                product.getCategory(),
+                product.getSaleStartAt(),
+                product.getSaleEndAt(),
+                product.getThumbnailUrl(),
                 product.getDescription(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
@@ -51,26 +56,40 @@ public class ProductQueryService {
         }
 
         return products.stream()
-                .map(p -> new ListProductsResult(
-                        p.getProductId(),
-                        p.getProductName(),
-                        p.getPrice(),
-                        p.getCurrency(),
-                        p.getProductStatus()
-                ))
+                .map(this::toListProductsResult)
                 .collect(Collectors.toList());
     }
 
     public List<ListProductsByIdsResult> listProductsByIds(List<Long> productIds) {
         return productRepository.findAllByProductIdIn(productIds)
                 .stream()
-                .map(p -> new ListProductsByIdsResult(
-                        p.getProductId(),
-                        p.getProductName(),
-                        p.getPrice(),
-                        p.getCurrency(),
-                        p.getProductStatus()
-                ))
+                .map(this::toListProductsByIdsResult)
                 .toList();
+    }
+
+    private ListProductsResult toListProductsResult(Product p) {
+        return new ListProductsResult(
+                p.getProductId(),
+                p.getProductName(),
+                p.getListPrice(),
+                p.getSellingPrice(),
+                p.getCurrency(),
+                p.getProductStatus(),
+                p.getCategory(),
+                p.getThumbnailUrl()
+        );
+    }
+
+    private ListProductsByIdsResult toListProductsByIdsResult(Product p) {
+        return new ListProductsByIdsResult(
+                p.getProductId(),
+                p.getProductName(),
+                p.getListPrice(),
+                p.getSellingPrice(),
+                p.getCurrency(),
+                p.getProductStatus(),
+                p.getCategory(),
+                p.getThumbnailUrl()
+        );
     }
 }

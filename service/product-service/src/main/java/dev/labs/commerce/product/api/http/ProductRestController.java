@@ -42,8 +42,13 @@ public class ProductRestController {
     public ResponseEntity<ProductResponse> registerProduct(@RequestBody @Valid RegisterProductRequest request) {
         RegisterProductCommand command = new RegisterProductCommand(
                 request.productName(),
-                request.price(),
+                request.listPrice(),
+                request.sellingPrice(),
                 request.currency(),
+                request.category(),
+                request.saleStartAt(),
+                request.saleEndAt(),
+                request.thumbnailUrl(),
                 request.description()
         );
         RegisterProductResult result = registerProductUseCase.execute(command);
@@ -60,8 +65,13 @@ public class ProductRestController {
         ModifyProductCommand command = new ModifyProductCommand(
                 productId,
                 request.productName(),
-                request.price(),
+                request.listPrice(),
+                request.sellingPrice(),
                 request.currency(),
+                request.category(),
+                request.saleStartAt(),
+                request.saleEndAt(),
+                request.thumbnailUrl(),
                 request.description()
         );
         ModifyProductResult result = modifyProductUseCase.execute(command);
@@ -116,9 +126,14 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
+                result.category(),
+                result.saleStartAt(),
+                result.saleEndAt(),
+                result.thumbnailUrl(),
                 result.description(),
                 result.createdAt(),
                 result.updatedAt()
@@ -129,9 +144,14 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
+                result.category(),
+                result.saleStartAt(),
+                result.saleEndAt(),
+                result.thumbnailUrl(),
                 result.description(),
                 result.createdAt(),
                 result.updatedAt()
@@ -142,9 +162,14 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
+                result.category(),
+                result.saleStartAt(),
+                result.saleEndAt(),
+                result.thumbnailUrl(),
                 result.description(),
                 result.createdAt(),
                 result.updatedAt()
@@ -155,9 +180,14 @@ public class ProductRestController {
         return new ProductResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
                 result.productStatus(),
+                result.category(),
+                result.saleStartAt(),
+                result.saleEndAt(),
+                result.thumbnailUrl(),
                 result.description(),
                 result.createdAt(),
                 result.updatedAt()
@@ -168,9 +198,12 @@ public class ProductRestController {
         return new ProductSummaryResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
-                result.productStatus()
+                result.productStatus(),
+                result.category(),
+                result.thumbnailUrl()
         );
     }
 
@@ -178,9 +211,12 @@ public class ProductRestController {
         return new ProductSummaryResponse(
                 result.productId(),
                 result.productName(),
-                result.price(),
+                result.listPrice(),
+                result.sellingPrice(),
                 result.currency(),
-                result.productStatus()
+                result.productStatus(),
+                result.category(),
+                result.thumbnailUrl()
         );
     }
 }

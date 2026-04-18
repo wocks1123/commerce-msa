@@ -18,28 +18,34 @@ public class ModifyProductUseCase {
 
     @Transactional
     public ModifyProductResult execute(ModifyProductCommand command) {
-        // Retrieve product
         Product product = productRepository.findById(command.productId())
                 .orElseThrow(() -> new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND, "Product not found: " + command.productId()));
 
-        // Modify product using domain method
         product.modify(
                 command.productName(),
-                command.price(),
+                command.listPrice(),
+                command.sellingPrice(),
                 command.currency(),
+                command.category(),
+                command.saleStartAt(),
+                command.saleEndAt(),
+                command.thumbnailUrl(),
                 command.description()
         );
 
-        // Persist the changes
         Product updatedProduct = productRepository.save(product);
 
-        // Convert to result
         return new ModifyProductResult(
                 updatedProduct.getProductId(),
                 updatedProduct.getProductName(),
-                updatedProduct.getPrice(),
+                updatedProduct.getListPrice(),
+                updatedProduct.getSellingPrice(),
                 updatedProduct.getCurrency(),
                 updatedProduct.getProductStatus(),
+                updatedProduct.getCategory(),
+                updatedProduct.getSaleStartAt(),
+                updatedProduct.getSaleEndAt(),
+                updatedProduct.getThumbnailUrl(),
                 updatedProduct.getDescription(),
                 updatedProduct.getCreatedAt(),
                 updatedProduct.getUpdatedAt()

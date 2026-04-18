@@ -18,23 +18,24 @@ public class ChangeProductStatusUseCase {
 
     @Transactional
     public ChangeProductStatusResult execute(ChangeProductStatusCommand command) {
-        // Retrieve product
         Product product = productRepository.findById(command.productId())
                 .orElseThrow(() -> new ProductNotFoundException(ProductErrorCode.PRODUCT_NOT_FOUND, "Product not found: " + command.productId()));
 
-        // Change status using domain method
         product.changeStatus(command.status());
 
-        // Persist the changes
         Product updatedProduct = productRepository.save(product);
 
-        // Convert to result
         return new ChangeProductStatusResult(
                 updatedProduct.getProductId(),
                 updatedProduct.getProductName(),
-                updatedProduct.getPrice(),
+                updatedProduct.getListPrice(),
+                updatedProduct.getSellingPrice(),
                 updatedProduct.getCurrency(),
                 updatedProduct.getProductStatus(),
+                updatedProduct.getCategory(),
+                updatedProduct.getSaleStartAt(),
+                updatedProduct.getSaleEndAt(),
+                updatedProduct.getThumbnailUrl(),
                 updatedProduct.getDescription(),
                 updatedProduct.getCreatedAt(),
                 updatedProduct.getUpdatedAt()
