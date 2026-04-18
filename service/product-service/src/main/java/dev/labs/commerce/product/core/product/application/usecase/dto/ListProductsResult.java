@@ -1,5 +1,6 @@
 package dev.labs.commerce.product.core.product.application.usecase.dto;
 
+import dev.labs.commerce.product.core.product.domain.ProductCategory;
 import dev.labs.commerce.product.core.product.domain.ProductStatus;
 
 public record ListProductsResult(
@@ -8,6 +9,8 @@ public record ListProductsResult(
         Long listPrice,
         Long sellingPrice,
         String currency,
-        ProductStatus productStatus
+        ProductStatus productStatus,
+        ProductCategory category,
+        String thumbnailUrl
 ) {
 }
