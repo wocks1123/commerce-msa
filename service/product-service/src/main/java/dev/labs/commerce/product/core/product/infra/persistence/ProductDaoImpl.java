@@ -1,7 +1,6 @@
 package dev.labs.commerce.product.core.product.infra.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductDao;
 import dev.labs.commerce.product.core.product.domain.ProductStatus;
 import dev.labs.commerce.product.core.product.domain.QProduct;
@@ -18,9 +17,10 @@ public class ProductDaoImpl implements ProductDao {
     private final JPAQueryFactory factory;
 
     @Override
-    public List<Product> findByStatusInSalePeriod(ProductStatus status, Instant at, int limit) {
+    public List<Long> findIdsByStatusInSalePeriod(ProductStatus status, Instant at, int limit) {
         QProduct product = QProduct.product;
-        return factory.selectFrom(product)
+        return factory.select(product.productId)
+                .from(product)
                 .where(
                         product.productStatus.eq(status),
                         product.saleStartAt.loe(at),
