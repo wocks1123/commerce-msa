@@ -29,6 +29,18 @@ spring:
         product-registered-out-0:
           destination: product.registered
           content-type: application/json
+        product-activated-out-0:
+          destination: product.activated
+          content-type: application/json
+        product-deactivated-out-0:
+          destination: product.deactivated
+          content-type: application/json
+        product-discontinued-out-0:
+          destination: product.discontinued
+          content-type: application/json
+        product-modified-out-0:
+          destination: product.modified
+          content-type: application/json
 
 management:
   tracing:
