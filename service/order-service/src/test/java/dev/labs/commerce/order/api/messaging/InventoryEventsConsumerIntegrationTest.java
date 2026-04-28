@@ -2,10 +2,10 @@ package dev.labs.commerce.order.api.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.labs.commerce.order.core.order.domain.OrderItem;
 import dev.labs.commerce.order.core.order.domain.OrderStatus;
 import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
+import dev.labs.commerce.order.core.order.domain.fixture.SalesOrderFixture;
 import dev.labs.commerce.order.support.AbstractIntegrationTest;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -23,7 +23,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,9 +44,8 @@ class InventoryEventsConsumerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("재고 예약 실패 이벤트가 도착하면 해당 주문이 ABORTED로 전이된다")
     void stockReservationFailedEvent_consumed_transitionsOrderToAborted() {
         // given
-        OrderItem item = OrderItem.create(1L, "상품A", 5000L, 2, "KRW");
-        SalesOrder order = SalesOrder.create(100L, "KRW", List.of(item), Instant.now());
-        salesOrderRepository.saveAndFlush(order);
+        SalesOrder order = salesOrderRepository.saveAndFlush(
+                SalesOrderFixture.builder().withSample().build());
 
         String envelopeJson = buildEnvelopeJson(order.getOrderId());
 

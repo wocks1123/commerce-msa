@@ -3,10 +3,10 @@ package dev.labs.commerce.order.api.messaging;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.labs.commerce.order.core.order.domain.OrderItem;
 import dev.labs.commerce.order.core.order.domain.OrderStatus;
 import dev.labs.commerce.order.core.order.domain.SalesOrder;
 import dev.labs.commerce.order.core.order.domain.SalesOrderRepository;
+import dev.labs.commerce.order.core.order.domain.fixture.SalesOrderFixture;
 import dev.labs.commerce.order.support.AbstractIntegrationTest;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -41,7 +41,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PaymentEventsConsumerIntegrationTest extends AbstractIntegrationTest {
 
     private static final long CUSTOMER_ID = 100L;
-    private static final long UNIT_PRICE = 5000L;
     private static final int QUANTITY = 2;
     private static final String CURRENCY = "KRW";
 
@@ -158,16 +157,17 @@ class PaymentEventsConsumerIntegrationTest extends AbstractIntegrationTest {
     // --- helpers ---
 
     private SalesOrder saveCreatedOrder() {
-        OrderItem item = OrderItem.create(1L, "상품A", UNIT_PRICE, QUANTITY, CURRENCY);
-        SalesOrder order = SalesOrder.create(CUSTOMER_ID, CURRENCY, List.of(item), Instant.now());
-        return salesOrderRepository.saveAndFlush(order);
+        return salesOrderRepository.saveAndFlush(
+                SalesOrderFixture.builder().withSample().build());
     }
 
     private SalesOrder savePendingOrder() {
-        OrderItem item = OrderItem.create(1L, "상품A", UNIT_PRICE, QUANTITY, CURRENCY);
-        SalesOrder order = SalesOrder.create(CUSTOMER_ID, CURRENCY, List.of(item), Instant.now());
-        order.markAsPending(Instant.now());
-        return salesOrderRepository.saveAndFlush(order);
+        return salesOrderRepository.saveAndFlush(
+                SalesOrderFixture.builder()
+                        .withSample()
+                        .status(OrderStatus.PENDING)
+                        .pendingAt(Instant.now())
+                        .build());
     }
 
     private void sendEnvelope(String topic, String eventType, ObjectNode payload, String key) {
