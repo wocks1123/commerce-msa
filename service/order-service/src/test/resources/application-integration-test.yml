@@ -1,0 +1,35 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  cloud:
+    stream:
+      bindings:
+        onStockReservationFailed-in-0:
+          group: "order-service-it-${random.uuid}"
+        onPaymentInitialized-in-0:
+          group: "order-service-it-${random.uuid}"
+        onPaymentApproved-in-0:
+          group: "order-service-it-${random.uuid}"
+        onPaymentFailed-in-0:
+          group: "order-service-it-${random.uuid}"
+        onPaymentExpired-in-0:
+          group: "order-service-it-${random.uuid}"
+
+order:
+  expiry:
+    pending-expiry-minutes: 99999
+
+service:
+  client:
+    product:
+      base-url: http://localhost:1
+      connect-timeout: 1000
+      read-timeout: 1000
+
+logging:
+  level:
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
+    org.apache.kafka: WARN
+    dev.labs.commerce.order: DEBUG
