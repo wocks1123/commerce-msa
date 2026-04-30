@@ -27,3 +27,19 @@
 `PgGatewayRouter`가 결제 요청의 `PgProvider` 값 기반으로 구현체를 라우팅하므로, 실제 PG 구현체 추가 시 기존 코드 변경 없음.
 
 결제 초기화 시 `idempotencyKey` 중복 여부를 사전 검사해, 네트워크 재시도로 동일 요청이 재전송되어도 이중 결제 미발생.
+
+## Dead Letter Topic (DLT)
+
+order-service의 Kafka 컨슈머 5종은 처리 실패 시 Spring Cloud Stream 기본 재시도(3회 backoff)
+후 메시지를 `<원본>.DLT` 토픽으로 라우팅한다. 메시지 손실을 방지하고 사후 추적/재처리 가능.
+
+| 원본 토픽 | DLT 토픽 |
+|---|---|
+| `stock.reservation.failed` | `stock.reservation.failed.DLT` |
+| `payment.initialized` | `payment.initialized.DLT` |
+| `payment.approved` | `payment.approved.DLT` |
+| `payment.failed` | `payment.failed.DLT` |
+| `payment.expired` | `payment.expired.DLT` |
+
+- 페이로드는 원본 그대로 보존되고, 헤더에 실패 metadata(예외 stacktrace, 원본 토픽, 시도 횟수)가 추가된다.
+- DLT 라우팅 동작은 `InventoryEventsConsumerIntegrationTest`에서 통합테스트로 검증.

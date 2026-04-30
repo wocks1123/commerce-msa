@@ -27,6 +27,27 @@ spring:
       kafka:
         binder:
           brokers: localhost:20023
+        bindings:
+          onStockReservationFailed-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: stock.reservation.failed.DLT
+          onPaymentInitialized-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: payment.initialized.DLT
+          onPaymentApproved-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: payment.approved.DLT
+          onPaymentFailed-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: payment.failed.DLT
+          onPaymentExpired-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: payment.expired.DLT
       bindings:
         order-aborted-out-0:
           destination: order.aborted
