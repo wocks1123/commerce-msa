@@ -53,7 +53,7 @@ public class ProductClientAdapter implements ProductPort {
                     .map(dto -> new ProductInfo(
                             dto.productId(),
                             dto.productName(),
-                            dto.price(),
+                            dto.sellingPrice(),
                             dto.currency(),
                             dto.productStatus()))
                     .toList();
