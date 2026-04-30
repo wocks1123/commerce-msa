@@ -89,16 +89,16 @@ public class CreateOrderUseCase {
                 );
             }
 
-            if (item.unitPrice() != product.price()) {
+            if (item.unitPrice() != product.sellingPrice()) {
                 throw new OrderProductInvalidException(
                         OrderErrorCode.LINE_AMOUNT_MISMATCH,
                         "Unit price mismatch. productId=" + item.productId()
-                                + ", expected=" + product.price()
+                                + ", expected=" + product.sellingPrice()
                                 + ", actual=" + item.unitPrice()
                 );
             }
 
-            long expectedLineAmount = product.price() * item.quantity();
+            long expectedLineAmount = product.sellingPrice() * item.quantity();
             if (item.lineAmount() != expectedLineAmount) {
                 throw new OrderProductInvalidException(
                         OrderErrorCode.LINE_AMOUNT_MISMATCH,

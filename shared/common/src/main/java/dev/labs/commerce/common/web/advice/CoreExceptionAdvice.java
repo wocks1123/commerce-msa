@@ -3,6 +3,7 @@ package dev.labs.commerce.common.web.advice;
 import dev.labs.commerce.common.error.*;
 import dev.labs.commerce.common.web.problem.ProblemDetailFactory;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Order(1)
+@Slf4j
 public class CoreExceptionAdvice {
 
     private final ProblemDetailFactory problemDetailFactory;
@@ -65,6 +67,7 @@ public class CoreExceptionAdvice {
     private ResponseEntity<ProblemDetail> build(CoreException ex,
                                                 HttpStatus status,
                                                 HttpServletRequest request) {
+        logException(ex, status);
 
         ProblemDetail pd = problemDetailFactory.create(
                 status,
@@ -74,5 +77,13 @@ public class CoreExceptionAdvice {
         );
 
         return ResponseEntity.status(status).body(pd);
+    }
+
+    private void logException(CoreException ex, HttpStatus status) {
+        if (status.is5xxServerError()) {
+            log.warn("[{}] {}: {}", status.value(), ex.getErrorCode().getCode(), ex.getMessage(), ex);
+        } else {
+            log.info("[{}] {}: {}", status.value(), ex.getErrorCode().getCode(), ex.getMessage());
+        }
     }
 }

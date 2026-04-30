@@ -2,6 +2,7 @@ package dev.labs.commerce.common.web.advice;
 
 import dev.labs.commerce.common.web.problem.ProblemDetailFactory;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Order(999)
+@Slf4j
 public class FallbackExceptionAdvice {
 
     private final ProblemDetailFactory problemDetailFactory;
@@ -23,6 +25,9 @@ public class FallbackExceptionAdvice {
     public ResponseEntity<ProblemDetail> handleUnknown(
             Exception ex,
             HttpServletRequest request) {
+
+        log.error("Unhandled exception at {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
         ProblemDetail pd = problemDetailFactory.create(
                 HttpStatus.INTERNAL_SERVER_ERROR,

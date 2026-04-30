@@ -13,8 +13,10 @@ Content-Type: application/json
 
 {
   "productName": "Premium Wireless Headphones",
-  "price": 199000,
+  "listPrice": 249000,
+  "sellingPrice": 199000,
   "currency": "KRW",
+  "category": "ACCESSORY",
   "description": "High-quality wireless headphones with noise cancellation"
 }
 
