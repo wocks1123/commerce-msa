@@ -12,8 +12,13 @@ Content-Type: application/json
 
 {
   "productName": "Premium Wireless Headphones",
-  "price": 199000,
+  "listPrice": 249000,
+  "sellingPrice": 199000,
   "currency": "KRW",
+  "category": "ACCESSORY",
+  "saleStartAt": "2026-05-01T00:00:00Z",
+  "saleEndAt": "2026-12-31T23:59:59Z",
+  "thumbnailUrl": "https://cdn.example.com/products/headphones.jpg",
   "description": "High-quality wireless headphones with noise cancellation"
 }
 
@@ -23,8 +28,13 @@ Content-Type: application/json
 
 {
   "productName": "Updated Premium Wireless Headphones",
-  "price": 249000,
+  "listPrice": 299000,
+  "sellingPrice": 249000,
   "currency": "KRW",
+  "category": "ACCESSORY",
+  "saleStartAt": "2026-05-01T00:00:00Z",
+  "saleEndAt": "2026-12-31T23:59:59Z",
+  "thumbnailUrl": "https://cdn.example.com/products/headphones-v2.jpg",
   "description": "Updated description with improved features"
 }
 
@@ -33,7 +43,7 @@ PATCH {{BASE_URL}}/api/v1/products/{{productId}}/status
 Content-Type: application/json
 
 {
-  "status": "INACTIVE"
+  "status": "ACTIVE"
 }
 
 ### Get product details
@@ -44,3 +54,6 @@ GET {{BASE_URL}}/api/v1/products
 
 ### List all products filtered by status
 GET {{BASE_URL}}/api/v1/products?status=ACTIVE
+
+### List products by IDs
+GET {{BASE_URL}}/api/v1/products?ids=1,2,3
