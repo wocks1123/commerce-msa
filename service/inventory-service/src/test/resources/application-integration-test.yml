@@ -1,0 +1,39 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 5s
+  datasource:
+    hikari:
+      connection-timeout: 3000
+  jpa:
+    hibernate:
+      ddl-auto: update
+  cloud:
+    stream:
+      kafka:
+        binder:
+          # 컨테이너 종료 후 끊긴 브로커 재연결 시도로 JVM 종료가 늘어지지 않도록 짧게
+          consumer-properties:
+            request.timeout.ms: 3000
+            default.api.timeout.ms: 3000
+            session.timeout.ms: 6000
+          producer-properties:
+            max.block.ms: 3000
+            delivery.timeout.ms: 3000
+            request.timeout.ms: 3000
+            retries: 0
+      bindings:
+        onProductEvents-in-0:
+          group: "inventory-service-it-${random.uuid}"
+        onOrderAbortedEvents-in-0:
+          group: "inventory-service-it-${random.uuid}"
+        onOrderExpiredEvents-in-0:
+          group: "inventory-service-it-${random.uuid}"
+        onOrderPaidEvents-in-0:
+          group: "inventory-service-it-${random.uuid}"
+
+logging:
+  level:
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
+    org.apache.kafka: WARN
+    dev.labs.commerce.inventory: DEBUG
