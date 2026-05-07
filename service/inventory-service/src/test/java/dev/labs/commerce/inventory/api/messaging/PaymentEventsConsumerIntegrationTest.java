@@ -3,7 +3,10 @@ package dev.labs.commerce.inventory.api.messaging;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.labs.commerce.inventory.core.inventory.domain.Actor;
 import dev.labs.commerce.inventory.core.inventory.domain.Inventory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistory;
+import dev.labs.commerce.inventory.core.inventory.domain.InventoryHistoryRepository;
 import dev.labs.commerce.inventory.core.inventory.domain.InventoryRepository;
 import dev.labs.commerce.inventory.support.AbstractIntegrationTest;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -35,6 +38,9 @@ class PaymentEventsConsumerIntegrationTest extends AbstractIntegrationTest {
     private InventoryRepository inventoryRepository;
 
     @Autowired
+    private InventoryHistoryRepository inventoryHistoryRepository;
+
+    @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
@@ -55,6 +61,32 @@ class PaymentEventsConsumerIntegrationTest extends AbstractIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(15))
                 .pollInterval(Duration.ofMillis(200))
+                .untilAsserted(() -> {
+                    Inventory reloaded = inventoryRepository.findById(productId).orElseThrow();
+                    assertThat(reloaded.getTotalQuantity()).isEqualTo(5);
+                    assertThat(reloaded.getReservedQuantity()).isZero();
+                });
+    }
+
+    @Test
+    @DisplayName("이미 CONFIRM된 (orderId, productId)에 OrderPaidEvent가 다시 도착해도 상태가 변하지 않는다")
+    void alreadyConfirmed_idempotentNoOp() {
+        long productId = ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE);
+        String orderId = UUID.randomUUID().toString();
+
+        Inventory inventory = Inventory.create(productId);
+        inventory.increase(10);
+        inventory.reserve(5);
+        inventory.confirm(5);
+        inventoryRepository.saveAndFlush(inventory);
+        inventoryHistoryRepository.saveAndFlush(
+                InventoryHistory.confirm(orderId, inventory, 5, Actor.ORDER_SERVICE));
+
+        sendEvent(orderId, productId, 5);
+
+        Awaitility.await()
+                .during(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
                     Inventory reloaded = inventoryRepository.findById(productId).orElseThrow();
                     assertThat(reloaded.getTotalQuantity()).isEqualTo(5);
