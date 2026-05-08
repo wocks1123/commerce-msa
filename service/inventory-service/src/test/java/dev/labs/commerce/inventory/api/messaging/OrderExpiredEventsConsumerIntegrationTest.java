@@ -72,6 +72,54 @@ class OrderExpiredEventsConsumerIntegrationTest extends AbstractIntegrationTest 
                 });
     }
 
+    @Test
+    @DisplayName("이미 RELEASE된 (orderId, productId)에 OrderExpiredEvent가 다시 도착해도 상태가 변하지 않는다")
+    void alreadyReleased_idempotentNoOp() {
+        long productId = ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE);
+        String orderId = UUID.randomUUID().toString();
+
+        Inventory inventory = Inventory.create(productId);
+        inventory.increase(10);
+        inventoryRepository.saveAndFlush(inventory);
+        inventoryHistoryRepository.saveAndFlush(
+                InventoryHistory.reserve(orderId, inventory, 5, Actor.ORDER_SERVICE));
+        inventoryHistoryRepository.saveAndFlush(
+                InventoryHistory.release(orderId, inventory, 5, Actor.ORDER_SERVICE));
+
+        sendEvent(orderId, productId, 5);
+
+        Awaitility.await()
+                .during(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(3))
+                .untilAsserted(() -> {
+                    Inventory reloaded = inventoryRepository.findById(productId).orElseThrow();
+                    assertThat(reloaded.getTotalQuantity()).isEqualTo(10);
+                    assertThat(reloaded.getReservedQuantity()).isZero();
+                });
+    }
+
+    @Test
+    @DisplayName("RESERVE 이력이 없는 (orderId, productId)에 OrderExpiredEvent가 도착해도 상태가 변하지 않는다")
+    void noReserveHistory_skipsRelease() {
+        long productId = ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE);
+        String orderId = UUID.randomUUID().toString();
+
+        Inventory inventory = Inventory.create(productId);
+        inventory.increase(10);
+        inventoryRepository.saveAndFlush(inventory);
+
+        sendEvent(orderId, productId, 5);
+
+        Awaitility.await()
+                .during(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(3))
+                .untilAsserted(() -> {
+                    Inventory reloaded = inventoryRepository.findById(productId).orElseThrow();
+                    assertThat(reloaded.getTotalQuantity()).isEqualTo(10);
+                    assertThat(reloaded.getReservedQuantity()).isZero();
+                });
+    }
+
     private void sendEvent(String orderId, long productId, int quantity) {
         kafkaTemplate.send("order.expired", orderId, buildEnvelopeJson(orderId, productId, quantity));
     }

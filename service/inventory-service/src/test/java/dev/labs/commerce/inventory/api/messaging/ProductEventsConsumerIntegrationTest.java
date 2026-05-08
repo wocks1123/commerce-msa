@@ -58,6 +58,26 @@ class ProductEventsConsumerIntegrationTest extends AbstractIntegrationTest {
                 });
     }
 
+    @Test
+    @DisplayName("이미 등록된 productId로 ProductRegisteredEvent가 다시 도착해도 inventory 상태가 변하지 않는다")
+    void duplicateProductId_idempotentNoOp() {
+        long productId = ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE);
+        Inventory existing = Inventory.create(productId);
+        existing.increase(7);
+        inventoryRepository.saveAndFlush(existing);
+
+        sendEvent(productId);
+
+        Awaitility.await()
+                .during(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(3))
+                .untilAsserted(() -> {
+                    Inventory reloaded = inventoryRepository.findById(productId).orElseThrow();
+                    assertThat(reloaded.getTotalQuantity()).isEqualTo(7);
+                    assertThat(reloaded.getReservedQuantity()).isZero();
+                });
+    }
+
     private void sendEvent(long productId) {
         kafkaTemplate.send("product.registered", String.valueOf(productId), buildEnvelopeJson(productId));
     }
