@@ -27,6 +27,23 @@ spring:
       kafka:
         binder:
           brokers: localhost:20023
+        bindings:
+          onProductEvents-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: product.registered.DLT
+          onOrderAbortedEvents-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: order.aborted.DLT
+          onOrderExpiredEvents-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: order.expired.DLT
+          onOrderPaidEvents-in-0:
+            consumer:
+              enableDlq: true
+              dlqName: order.paid.DLT
       bindings:
         onProductEvents-in-0:
           destination: product.registered
