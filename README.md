@@ -130,4 +130,5 @@ docker compose -f docker-compose.app.yml down -v
 
 - [주문 흐름 / 상태 전이](docs/design/flow.md)
 - [Kafka 토픽](docs/design/topics.md)
-- [주요 컴포넌트 (만료 스케줄러, Mock PG)](docs/design/components.md)
+- [주요 컴포넌트 (스케줄러, Mock PG, DLT)](docs/design/components.md)
+- [이벤트 Envelope 구조](docs/design/event-envelope.md)
