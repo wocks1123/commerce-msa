@@ -32,9 +32,9 @@ sequenceDiagram
         PAY -->> C: PG 결제창 진입 정보 응답
     end
 
-    C ->> PAY: 3. GET /payments/mock-pay/success (PG 콜백 시뮬레이션)
+    C ->> PAY: 3-a. GET /payments/mock-pay/success (PG 결제 성공 콜백)
     PAY ->> PAY: PG 승인 처리
-    alt 결제 성공
+    alt PG 승인 성공
         PAY ->> PAY: Payment APPROVED
         PAY ->> K: payment.approved
         K ->> OS: payment.approved
@@ -42,7 +42,7 @@ sequenceDiagram
         OS ->> K: order.paid
         K ->> IS: order.paid
         IS ->> IS: 재고 예약 확정
-    else 결제 실패
+    else PG 승인 실패
         PAY ->> PAY: Payment FAILED
         PAY ->> K: payment.failed
         K ->> OS: payment.failed
@@ -51,6 +51,24 @@ sequenceDiagram
         K ->> IS: order.aborted
         IS ->> IS: 재고 예약 해제
     end
+
+    C ->> PAY: 3-b. GET /payments/mock-pay/fail (PG 결제 실패 콜백)
+    PAY ->> PAY: Payment FAILED (승인 절차 없이 즉시 실패)
+    PAY ->> K: payment.failed
+    K ->> OS: payment.failed
+    OS ->> OS: 주문 상태 → ABORTED
+    OS ->> K: order.aborted
+    K ->> IS: order.aborted
+    IS ->> IS: 재고 예약 해제
+
+    note over PAY: 4-a. 결제 만료 스케줄러 (REQUESTED 30분 경과)
+    PAY ->> PAY: Payment FAILED (PAYMENT_EXPIRED)
+    PAY ->> K: payment.expired
+    K ->> OS: payment.expired
+    OS ->> OS: 주문 상태 → EXPIRED
+
+    note over OS: 4-b. 주문 만료 스케줄러 (CREATED 10분 경과, 결제 미초기화)
+    OS ->> OS: 주문 상태 → EXPIRED
 ```
 
 ## 주문 상태 전이
@@ -76,7 +94,7 @@ stateDiagram-v2
     IN_PROGRESS --> APPROVED: PG 승인 성공
     IN_PROGRESS --> FAILED: PG 승인 실패
     IN_PROGRESS --> ABORTED: PG 결과 불확실
-    REQUESTED --> FAILED: PG 직접 실패 콜백
+    REQUESTED --> FAILED: PG 결제 실패 콜백
     REQUESTED --> FAILED: 결제 만료 (스케줄러)
-    APPROVED --> CANCELED: 결제 취소
+    APPROVED --> CANCELED: 결제 취소 (미구현)
 ```
