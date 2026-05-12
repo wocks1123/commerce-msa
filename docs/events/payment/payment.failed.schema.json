@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "payment.failed.v1",
+  "title": "payment.failed",
+  "description": "결제 실패를 알리는 이벤트.",
+  "type": "object",
+  "required": ["meta", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "allOf": [
+        {
+          "$ref": "../common/event-meta.schema.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "const": "PaymentFailedEvent",
+              "description": "이 이벤트의 고정 타입명"
+            }
+          }
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "비즈니스 데이터",
+      "required": ["paymentId", "orderId", "customerId", "failureCode", "failedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "paymentId": {
+          "type": "string",
+          "description": "결제 ID"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "주문 ID"
+        },
+        "customerId": {
+          "type": "integer",
+          "description": "고객 ID"
+        },
+        "failureCode": {
+          "type": "string",
+          "description": "실패 코드"
+        },
+        "failureMessage": {
+          "type": ["string", "null"],
+          "description": "실패 상세 메시지"
+        },
+        "failedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "결제 실패 시각. ISO-8601 UTC"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "meta": {
+        "eventId": "evt-pay-failed-001",
+        "eventType": "PaymentFailedEvent",
+        "occurredAt": "2026-02-28T09:00:00Z"
+      },
+      "payload": {
+        "paymentId": "pay-001",
+        "orderId": "order-001",
+        "customerId": 1001,
+        "failureCode": "PG_DECLINED",
+        "failureMessage": "Card declined",
+        "failedAt": "2026-02-28T09:00:00Z"
+      }
+    }
+  ]
+}

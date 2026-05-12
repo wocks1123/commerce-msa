@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "product.deactivated.v1",
+  "title": "product.deactivated",
+  "description": "상품 비활성화를 알리는 이벤트.",
+  "type": "object",
+  "required": ["meta", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "allOf": [
+        {
+          "$ref": "../common/event-meta.schema.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "const": "ProductDeactivatedEvent",
+              "description": "이 이벤트의 고정 타입명"
+            }
+          }
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "비즈니스 데이터",
+      "required": ["productId"],
+      "additionalProperties": false,
+      "properties": {
+        "productId": {
+          "type": "integer",
+          "description": "상품 ID"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "meta": {
+        "eventId": "evt-product-deactivated-001",
+        "eventType": "ProductDeactivatedEvent",
+        "occurredAt": "2026-02-28T09:00:00Z"
+      },
+      "payload": {
+        "productId": 2001
+      }
+    }
+  ]
+}

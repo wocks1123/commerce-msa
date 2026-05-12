@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stock.reservation.failed.v1",
+  "title": "stock.reservation.failed",
+  "description": "재고 예약 실패를 알리는 이벤트.",
+  "type": "object",
+  "required": ["meta", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "allOf": [
+        {
+          "$ref": "../common/event-meta.schema.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "const": "StockReservationFailedEvent",
+              "description": "이 이벤트의 고정 타입명"
+            }
+          }
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "비즈니스 데이터",
+      "required": ["productId", "orderId", "quantity", "errorCode"],
+      "additionalProperties": false,
+      "properties": {
+        "productId": {
+          "type": "integer",
+          "description": "상품 ID"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "주문 ID"
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "예약 요청 수량"
+        },
+        "errorCode": {
+          "type": "string",
+          "description": "실패 코드"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "meta": {
+        "eventId": "evt-stock-failed-001",
+        "eventType": "StockReservationFailedEvent",
+        "occurredAt": "2026-02-28T09:00:00Z"
+      },
+      "payload": {
+        "productId": 2001,
+        "orderId": "order-001",
+        "quantity": 2,
+        "errorCode": "INSUFFICIENT_STOCK"
+      }
+    }
+  ]
+}

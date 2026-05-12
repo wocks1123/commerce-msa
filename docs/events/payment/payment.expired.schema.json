@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "payment.expired.v1",
+  "title": "payment.expired",
+  "description": "결제 만료를 알리는 이벤트.",
+  "type": "object",
+  "required": ["meta", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "allOf": [
+        {
+          "$ref": "../common/event-meta.schema.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "const": "PaymentExpiredEvent",
+              "description": "이 이벤트의 고정 타입명"
+            }
+          }
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "비즈니스 데이터",
+      "required": ["paymentId", "orderId", "customerId", "expiredAt"],
+      "additionalProperties": false,
+      "properties": {
+        "paymentId": {
+          "type": "string",
+          "description": "결제 ID"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "주문 ID"
+        },
+        "customerId": {
+          "type": "integer",
+          "description": "고객 ID"
+        },
+        "expiredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "결제 만료 시각. ISO-8601 UTC"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "meta": {
+        "eventId": "evt-pay-expired-001",
+        "eventType": "PaymentExpiredEvent",
+        "occurredAt": "2026-02-28T09:00:00Z"
+      },
+      "payload": {
+        "paymentId": "pay-001",
+        "orderId": "order-001",
+        "customerId": 1001,
+        "expiredAt": "2026-02-28T09:00:00Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event-meta.v1",
+  "title": "event-meta",
+  "description": "공통 이벤트 메타데이터",
+  "type": "object",
+  "required": ["eventId", "eventType", "occurredAt"],
+  "additionalProperties": false,
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "description": "이벤트 고유 식별자"
+    },
+    "eventType": {
+      "type": "string",
+      "description": "이벤트 타입명"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "이벤트 발생 시각. ISO-8601 UTC"
+    }
+  }
+}
