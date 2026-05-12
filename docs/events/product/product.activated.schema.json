@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "product.activated.v1",
+  "title": "product.activated",
+  "description": "상품 활성화를 알리는 이벤트.",
+  "type": "object",
+  "required": ["meta", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "allOf": [
+        {
+          "$ref": "../common/event-meta.schema.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "const": "ProductActivatedEvent",
+              "description": "이 이벤트의 고정 타입명"
+            }
+          }
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "비즈니스 데이터",
+      "required": ["productId", "productName", "listPrice", "sellingPrice", "currency", "category", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "productId": {
+          "type": "integer",
+          "description": "상품 ID"
+        },
+        "productName": {
+          "type": "string",
+          "description": "상품명"
+        },
+        "listPrice": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "정가"
+        },
+        "sellingPrice": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "판매가"
+        },
+        "currency": {
+          "type": "string",
+          "description": "통화 코드"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["FIGURE", "PLUSH", "MODEL_KIT", "TRADING_CARD", "BOARD_GAME", "DIECAST", "PUZZLE", "ACCESSORY", "ETC"],
+          "description": "상품 카테고리"
+        },
+        "saleStartAt": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "판매 시작 시각"
+        },
+        "saleEndAt": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "판매 종료 시각"
+        },
+        "thumbnailUrl": {
+          "type": ["string", "null"],
+          "description": "썸네일 URL"
+        },
+        "description": {
+          "type": "string",
+          "description": "상품 설명"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "meta": {
+        "eventId": "evt-product-activated-001",
+        "eventType": "ProductActivatedEvent",
+        "occurredAt": "2026-02-28T09:00:00Z"
+      },
+      "payload": {
+        "productId": 2001,
+        "productName": "RX-78-2 Figure",
+        "listPrice": 35000,
+        "sellingPrice": 30000,
+        "currency": "KRW",
+        "category": "FIGURE",
+        "saleStartAt": "2026-02-28T09:00:00Z",
+        "saleEndAt": null,
+        "thumbnailUrl": "https://example.com/products/2001.png",
+        "description": "대표 피규어 상품"
+      }
+    }
+  ]
+}

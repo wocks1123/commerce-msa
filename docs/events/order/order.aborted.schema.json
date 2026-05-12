@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "order.aborted.v1",
+  "title": "order.aborted",
+  "description": "주문 중단을 알리는 이벤트.",
+  "type": "object",
+  "required": ["meta", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "allOf": [
+        {
+          "$ref": "../common/event-meta.schema.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "const": "OrderAbortedEvent",
+              "description": "이 이벤트의 고정 타입명"
+            }
+          }
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "비즈니스 데이터",
+      "required": ["orderId", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "주문 ID"
+        },
+        "items": {
+          "type": "array",
+          "description": "주문 상품 목록",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["productId", "quantity"],
+            "additionalProperties": false,
+            "properties": {
+              "productId": {
+                "type": "integer",
+                "description": "상품 ID"
+              },
+              "quantity": {
+                "type": "integer",
+                "description": "주문 수량"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "meta": {
+        "eventId": "evt-order-aborted-001",
+        "eventType": "OrderAbortedEvent",
+        "occurredAt": "2026-02-28T09:00:00Z"
+      },
+      "payload": {
+        "orderId": "order-001",
+        "items": [
+          {
+            "productId": 2001,
+            "quantity": 2
+          },
+          {
+            "productId": 2002,
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
