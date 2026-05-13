@@ -1,7 +1,6 @@
 package dev.labs.commerce.product.core.product.application.usecase;
 
-import dev.labs.commerce.product.core.product.application.event.ProductActivatedEvent;
-import dev.labs.commerce.product.core.product.application.event.ProductEventPublisher;
+import dev.labs.commerce.product.core.product.application.support.ProductStatusEventDispatcher;
 import dev.labs.commerce.product.core.product.application.usecase.dto.ActivateScheduledProductCommand;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
@@ -11,7 +10,6 @@ import dev.labs.commerce.product.core.product.domain.fixture.ProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,14 +30,14 @@ class ActivateScheduledProductUseCaseTest {
     private ProductRepository productRepository;
 
     @Mock
-    private ProductEventPublisher productEventPublisher;
+    private ProductStatusEventDispatcher productStatusEventDispatcher;
 
     @InjectMocks
     private ActivateScheduledProductUseCase activateScheduledProductUseCase;
 
     @Test
-    @DisplayName("INACTIVE 상품을 ACTIVE로 전환하고 ProductActivatedEvent를 발행한다")
-    void execute_inactiveToActive_publishesActivatedEvent() {
+    @DisplayName("INACTIVE 상품을 ACTIVE로 전환하고 dispatcher가 호출된다")
+    void execute_inactiveToActive_dispatchesEvent() {
         // given
         final Long productId = 1L;
         final Product product = ProductFixture.builder()
@@ -56,9 +54,7 @@ class ActivateScheduledProductUseCaseTest {
 
         // then
         assertThat(product.getProductStatus()).isEqualTo(ProductStatus.ACTIVE);
-        final ArgumentCaptor<ProductActivatedEvent> captor = ArgumentCaptor.forClass(ProductActivatedEvent.class);
-        then(productEventPublisher).should().publishProductActivated(captor.capture());
-        assertThat(captor.getValue().productId()).isEqualTo(productId);
+        then(productStatusEventDispatcher).should().dispatch(ProductStatus.INACTIVE, product);
     }
 
     @Test
@@ -79,7 +75,7 @@ class ActivateScheduledProductUseCaseTest {
 
         // then
         then(productRepository).should(never()).save(any(Product.class));
-        then(productEventPublisher).shouldHaveNoInteractions();
+        then(productStatusEventDispatcher).shouldHaveNoInteractions();
     }
 
     @Test
@@ -94,6 +90,6 @@ class ActivateScheduledProductUseCaseTest {
         assertThatThrownBy(() -> activateScheduledProductUseCase.execute(command))
                 .isInstanceOf(ProductNotFoundException.class);
         then(productRepository).should(never()).save(any(Product.class));
-        then(productEventPublisher).shouldHaveNoInteractions();
+        then(productStatusEventDispatcher).shouldHaveNoInteractions();
     }
 }
