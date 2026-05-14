@@ -1,7 +1,6 @@
 package dev.labs.commerce.product.core.product.application.usecase;
 
-import dev.labs.commerce.product.core.product.application.event.ProductActivatedEvent;
-import dev.labs.commerce.product.core.product.application.event.ProductEventPublisher;
+import dev.labs.commerce.product.core.product.application.support.ProductStatusEventDispatcher;
 import dev.labs.commerce.product.core.product.application.usecase.dto.ActivateScheduledProductCommand;
 import dev.labs.commerce.product.core.product.domain.Product;
 import dev.labs.commerce.product.core.product.domain.ProductRepository;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ActivateScheduledProductUseCase {
 
     private final ProductRepository productRepository;
-    private final ProductEventPublisher productEventPublisher;
+    private final ProductStatusEventDispatcher productStatusEventDispatcher;
 
     public void execute(ActivateScheduledProductCommand command) {
         Product product = productRepository.findById(command.productId())
@@ -34,18 +33,7 @@ public class ActivateScheduledProductUseCase {
         product.changeStatus(ProductStatus.ACTIVE);
         productRepository.save(product);
 
-        productEventPublisher.publishProductActivated(new ProductActivatedEvent(
-                product.getProductId(),
-                product.getProductName(),
-                product.getListPrice(),
-                product.getSellingPrice(),
-                product.getCurrency(),
-                product.getCategory(),
-                product.getSaleStartAt(),
-                product.getSaleEndAt(),
-                product.getThumbnailUrl(),
-                product.getDescription()
-        ));
+        productStatusEventDispatcher.dispatch(previousStatus, product);
 
         log.info("Product activated by scheduler: productId={}", product.getProductId());
     }

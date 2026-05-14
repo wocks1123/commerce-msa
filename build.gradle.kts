@@ -6,6 +6,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "8.4"
     id("net.ltgt.errorprone") version "4.1.0"
+    id("jacoco")
+    id("jacoco-report-aggregation")
 }
 
 allprojects {
@@ -56,6 +58,53 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+}
+
+val coverageExcludes = listOf(
+    "**/Q*.class",
+    "**/*Application.class",
+    "**/config/**",
+    "**/*Request.class",
+    "**/*Response.class",
+    "**/*Event.class",
+    "**/*Command.class",
+    "**/*Result.class",
+    "**/*Exception.class",
+)
+
+configure(subprojects.filter { it.path.startsWith(":service:") }) {
+    apply(plugin = "jacoco")
+
+    tasks.withType<Test>().configureEach {
+        finalizedBy(tasks.withType<JacocoReport>())
+    }
+
+    tasks.withType<JacocoReport>().configureEach {
+        dependsOn(tasks.withType<Test>())
+    }
+}
+
+dependencies {
+    jacocoAggregation(project(":service:inventory-service"))
+    jacocoAggregation(project(":service:order-service"))
+    jacocoAggregation(project(":service:payment-service"))
+    jacocoAggregation(project(":service:product-service"))
+}
+
+// 모든 프로젝트(루트 집계 + service 모듈)의 JacocoReport 공통 설정
+allprojects {
+    tasks.withType<JacocoReport>().configureEach {
+        reports {
+            html.required.set(true)
+            xml.required.set(true)
+            csv.required.set(false)
+        }
+        classDirectories.setFrom(
+            files(classDirectories.files.map {
+                fileTree(it) { exclude(coverageExcludes) }
+            })
+        )
     }
 }
 

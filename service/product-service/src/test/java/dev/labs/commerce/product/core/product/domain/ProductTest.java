@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import dev.labs.commerce.product.core.product.domain.error.InvalidProductStatusException;
+import dev.labs.commerce.product.core.product.domain.fixture.ProductFixture;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -474,6 +475,76 @@ class ProductTest {
             product.changeStatus(ProductStatus.INACTIVE);
 
             assertThat(product.isScheduled()).isFalse();
+        }
+
+        @Test
+        @DisplayName("INACTIVE + 판매시작일이 과거면 isScheduled는 false")
+        void isScheduled_whenSaleStartAtIsInPast_returnsFalse() {
+            Product product = Product.create(
+                    "상품명", 10000L, 9000L, "KRW",
+                    ProductCategory.FIGURE,
+                    Instant.now().minus(1, ChronoUnit.DAYS),
+                    Instant.now().plus(10, ChronoUnit.DAYS),
+                    null, "설명"
+            );
+            product.changeStatus(ProductStatus.ACTIVE);
+            product.changeStatus(ProductStatus.INACTIVE);
+
+            assertThat(product.isScheduled()).isFalse();
+        }
+
+        @Test
+        @DisplayName("INACTIVE + 판매종료일이 과거면 isSaleExpired는 true")
+        void isSaleExpired_whenInactiveAndEndInPast_returnsTrue() {
+            // create는 과거 saleEndAt을 막으므로 fixture로 직접 구성
+            Product product = ProductFixture.builder()
+                    .withSample()
+                    .productStatus(ProductStatus.INACTIVE)
+                    .saleEndAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                    .build();
+
+            assertThat(product.isSaleExpired()).isTrue();
+        }
+
+        @Test
+        @DisplayName("판매종료일이 null이면 isSaleExpired는 false")
+        void isSaleExpired_whenSaleEndAtIsNull_returnsFalse() {
+            Product product = newDraftProduct();
+            product.changeStatus(ProductStatus.ACTIVE);
+            product.changeStatus(ProductStatus.INACTIVE);
+
+            assertThat(product.isSaleExpired()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("판매 기간 검증")
+    class ValidateSalePeriod {
+
+        @Test
+        @DisplayName("판매시작일만 있고 판매종료일이 없어도 등록할 수 있다")
+        void createProduct_withOnlySaleStartAt_succeeds() {
+            Instant start = Instant.now().plus(1, ChronoUnit.DAYS);
+            Product product = Product.create(
+                    "상품명", 10000L, 10000L, "KRW",
+                    ProductCategory.FIGURE, start, null, null, "설명"
+            );
+
+            assertThat(product.getSaleStartAt()).isEqualTo(start);
+            assertThat(product.getSaleEndAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("판매종료일만 있고 판매시작일이 없어도 등록할 수 있다")
+        void createProduct_withOnlySaleEndAt_succeeds() {
+            Instant end = Instant.now().plus(10, ChronoUnit.DAYS);
+            Product product = Product.create(
+                    "상품명", 10000L, 10000L, "KRW",
+                    ProductCategory.FIGURE, null, end, null, "설명"
+            );
+
+            assertThat(product.getSaleStartAt()).isNull();
+            assertThat(product.getSaleEndAt()).isEqualTo(end);
         }
     }
 }
