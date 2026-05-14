@@ -100,6 +100,14 @@ class PaymentTest {
             assertThatThrownBy(() -> Payment.createApproved("order-1", 100L, 10000L, "KRW", "idem-key-1", PgProvider.MOCK_PAY, " ", Instant.now()))
                     .isInstanceOf(IllegalArgumentException.class);
         }
+
+        @Test
+        @DisplayName("결제 금액이 음수이면 즉시 승인 결제를 생성할 수 없다")
+        void createApprovedPayment_withNegativeAmount_throwsException() {
+            // when & then
+            assertThatThrownBy(() -> Payment.createApproved("order-1", 100L, -1L, "KRW", "idem-key-1", PgProvider.MOCK_PAY, "pg-tx-1", Instant.now()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     @Nested
