@@ -24,7 +24,7 @@ public class OrderExpiryScheduler {
     private final OrderExpiryProperties properties;
 
 
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(fixedDelay = 60_000, scheduler = "orderExpiryTaskScheduler")
     public void expireOrders() {
         Instant threshold = Instant.now().minus(properties.getPendingExpiryMinutes(), ChronoUnit.MINUTES);
         List<String> orderIds = salesOrderRepository.findOrderIdsByStatusAndOrderCreatedAtBefore(OrderStatus.CREATED, threshold);
