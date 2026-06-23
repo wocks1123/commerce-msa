@@ -14,8 +14,9 @@ public class OutboxRelayScheduler {
 
     private final OutboxRelay outboxRelay;
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 1000, scheduler = "outboxRelayTaskScheduler")
     public void dispatch() {
         outboxRelay.dispatchPending();
     }
+
 }
