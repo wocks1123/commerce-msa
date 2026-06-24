@@ -28,6 +28,7 @@ public class ExpirePaymentUseCase {
 
         Instant now = Instant.now();
         payment.fail("PAYMENT_EXPIRED", null, now);
+        paymentRepository.save(payment);
 
         eventPublisher.publishPaymentExpired(new PaymentExpiredEvent(
                 payment.getPaymentId(),
