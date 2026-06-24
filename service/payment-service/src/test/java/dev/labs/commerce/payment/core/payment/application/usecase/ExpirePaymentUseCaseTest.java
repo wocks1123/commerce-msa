@@ -54,6 +54,7 @@ class ExpirePaymentUseCaseTest {
         // then
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(payment.getFailureCode()).isEqualTo("PAYMENT_EXPIRED");
+        then(paymentRepository).should().save(payment);
         final ArgumentCaptor<PaymentExpiredEvent> captor = ArgumentCaptor.forClass(PaymentExpiredEvent.class);
         then(eventPublisher).should().publishPaymentExpired(captor.capture());
         assertThat(captor.getValue().paymentId()).isEqualTo(paymentId);

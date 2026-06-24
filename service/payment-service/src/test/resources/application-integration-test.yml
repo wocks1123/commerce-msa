@@ -1,0 +1,42 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 5s
+  datasource:
+    hikari:
+      connection-timeout: 3000
+  jpa:
+    hibernate:
+      ddl-auto: update
+  cloud:
+    stream:
+      kafka:
+        binder:
+          # 컨테이너 종료 후 끊긴 브로커 재연결 시도로 JVM 종료가 늘어지지 않도록 짧게
+          producer-properties:
+            max.block.ms: 3000
+            delivery.timeout.ms: 3000
+            request.timeout.ms: 3000
+            retries: 0
+
+# 통합 테스트에서는 백그라운드 outbox relay를 끄고 수동 dispatch로 검증한다.
+outbox:
+  relay:
+    enabled: false
+
+payment:
+  expiry:
+    requested-expiry-minutes: 99999
+
+service:
+  client:
+    inventory:
+      base-url: http://localhost:1
+      connect-timeout: 1000
+      read-timeout: 1000
+
+logging:
+  level:
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
+    org.apache.kafka: WARN
+    dev.labs.commerce.payment: DEBUG
