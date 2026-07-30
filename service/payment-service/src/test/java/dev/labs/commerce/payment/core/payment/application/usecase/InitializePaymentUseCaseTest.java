@@ -11,12 +11,17 @@ import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
 import dev.labs.commerce.payment.core.payment.domain.PgProvider;
+import dev.labs.commerce.payment.core.payment.domain.exception.OrderNotFoundException;
+import dev.labs.commerce.payment.core.payment.domain.exception.OrderNotPayableException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentAlreadyExistsException;
+import dev.labs.commerce.payment.core.payment.domain.exception.PaymentOrderMismatchException;
 import dev.labs.commerce.payment.core.payment.domain.fixture.PaymentFixture;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -149,6 +154,104 @@ class InitializePaymentUseCaseTest {
         then(paymentEventPublisher).shouldHaveNoInteractions();
     }
 
+    @Test
+    @DisplayName("주문이 존재하지 않으면 예외가 전파되고 재고 예약은 호출되지 않는다")
+    void execute_whenOrderNotFound_doesNotReserve() {
+        // given
+        final InitializePaymentCommand command = sampleCommand("order-none", "idem-3");
+        given(paymentRepository.existsByOrderId(command.orderId())).willReturn(false);
+        given(paymentRepository.findByIdempotencyKey(command.idempotencyKey())).willReturn(Optional.empty());
+        given(orderPort.getOrder(command.orderId())).willThrow(new OrderNotFoundException(command.orderId()));
+
+        // when & then
+        assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
+                .isInstanceOf(OrderNotFoundException.class);
+        then(inventoryPort).shouldHaveNoInteractions();
+        then(paymentRepository).should(never()).save(any(Payment.class));
+        then(paymentEventPublisher).shouldHaveNoInteractions();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = OrderStatus.class, names = "CREATED", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("주문 상태가 CREATED가 아니면(UNKNOWN 포함) OrderNotPayableException이 발생하고 재고 예약은 호출되지 않는다")
+    void execute_whenOrderNotPayable_throwsException(OrderStatus status) {
+        // given
+        final InitializePaymentCommand command = sampleCommand("order-4", "idem-4");
+        given(paymentRepository.existsByOrderId(command.orderId())).willReturn(false);
+        given(paymentRepository.findByIdempotencyKey(command.idempotencyKey())).willReturn(Optional.empty());
+        given(orderPort.getOrder(command.orderId())).willReturn(sampleOrder(command.orderId(), status));
+
+        // when & then
+        assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
+                .isInstanceOf(OrderNotPayableException.class);
+        then(inventoryPort).shouldHaveNoInteractions();
+        then(paymentRepository).should(never()).save(any(Payment.class));
+        then(paymentEventPublisher).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("요청 customerId가 주문과 다르면 PaymentOrderMismatchException이 발생하고 재고 예약은 호출되지 않는다")
+    void execute_whenCustomerIdMismatch_throwsException() {
+        // given
+        final InitializePaymentCommand command = sampleCommand("order-5", "idem-5");
+        final OrderPort.OrderSnapshot order = new OrderPort.OrderSnapshot(
+                command.orderId(), CUSTOMER_ID + 1, OrderStatus.CREATED, TOTAL_PRICE, CURRENCY, sampleItems());
+        givenOrderLookup(command, order);
+
+        // when & then
+        assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
+                .isInstanceOf(PaymentOrderMismatchException.class)
+                .extracting(e -> ((PaymentOrderMismatchException) e).getField())
+                .isEqualTo(PaymentOrderMismatchException.Field.CUSTOMER_ID);
+        then(inventoryPort).shouldHaveNoInteractions();
+        then(paymentRepository).should(never()).save(any(Payment.class));
+        then(paymentEventPublisher).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("요청 amount가 주문 totalPrice와 다르면 PaymentOrderMismatchException이 발생하고 재고 예약은 호출되지 않는다")
+    void execute_whenAmountMismatch_throwsException() {
+        // given
+        final InitializePaymentCommand command = sampleCommand("order-6", "idem-6");
+        final OrderPort.OrderSnapshot order = new OrderPort.OrderSnapshot(
+                command.orderId(), CUSTOMER_ID, OrderStatus.CREATED, TOTAL_PRICE - 1, CURRENCY, sampleItems());
+        givenOrderLookup(command, order);
+
+        // when & then
+        assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
+                .isInstanceOf(PaymentOrderMismatchException.class)
+                .extracting(e -> ((PaymentOrderMismatchException) e).getField())
+                .isEqualTo(PaymentOrderMismatchException.Field.AMOUNT);
+        then(inventoryPort).shouldHaveNoInteractions();
+        then(paymentRepository).should(never()).save(any(Payment.class));
+        then(paymentEventPublisher).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("요청 currency가 주문과 다르면 PaymentOrderMismatchException이 발생하고 재고 예약은 호출되지 않는다")
+    void execute_whenCurrencyMismatch_throwsException() {
+        // given
+        final InitializePaymentCommand command = sampleCommand("order-7", "idem-7");
+        final OrderPort.OrderSnapshot order = new OrderPort.OrderSnapshot(
+                command.orderId(), CUSTOMER_ID, OrderStatus.CREATED, TOTAL_PRICE, "USD", sampleItems());
+        givenOrderLookup(command, order);
+
+        // when & then
+        assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
+                .isInstanceOf(PaymentOrderMismatchException.class)
+                .extracting(e -> ((PaymentOrderMismatchException) e).getField())
+                .isEqualTo(PaymentOrderMismatchException.Field.CURRENCY);
+        then(inventoryPort).shouldHaveNoInteractions();
+        then(paymentRepository).should(never()).save(any(Payment.class));
+        then(paymentEventPublisher).shouldHaveNoInteractions();
+    }
+
+    private void givenOrderLookup(InitializePaymentCommand command, OrderPort.OrderSnapshot order) {
+        given(paymentRepository.existsByOrderId(command.orderId())).willReturn(false);
+        given(paymentRepository.findByIdempotencyKey(command.idempotencyKey())).willReturn(Optional.empty());
+        given(orderPort.getOrder(command.orderId())).willReturn(order);
+    }
+
     private InitializePaymentCommand sampleCommand(String orderId, String idempotencyKey) {
         return new InitializePaymentCommand(
                 orderId,
@@ -168,10 +271,14 @@ class InitializePaymentUseCaseTest {
                 status,
                 TOTAL_PRICE,
                 CURRENCY,
-                List.of(
-                        new OrderPort.OrderSnapshot.Item(10L, 2),
-                        new OrderPort.OrderSnapshot.Item(20L, 1)
-                )
+                sampleItems()
+        );
+    }
+
+    private List<OrderPort.OrderSnapshot.Item> sampleItems() {
+        return List.of(
+                new OrderPort.OrderSnapshot.Item(10L, 2),
+                new OrderPort.OrderSnapshot.Item(20L, 1)
         );
     }
 }
