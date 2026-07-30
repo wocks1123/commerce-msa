@@ -13,7 +13,11 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_NOT_FOUND("PAYMENT_NOT_FOUND", "Payment not found."),
     PAYMENT_APPROVAL_FAILED("PAYMENT_APPROVAL_FAILED", "Payment approval failed by PG."),
     PAYMENT_AMOUNT_MISMATCH("PAYMENT_AMOUNT_MISMATCH", "Approved amount does not match the requested amount."),
-    PAYMENT_ORDER_MISMATCH("PAYMENT_ORDER_MISMATCH", "Order ID does not match the payment record."),
+    ORDER_NOT_FOUND("ORDER_NOT_FOUND", "Order not found."),
+    ORDER_NOT_PAYABLE("ORDER_NOT_PAYABLE", "Order is not in a payable state."),
+    ORDER_MISMATCH("ORDER_MISMATCH", "Requested payment information does not match the order."),
+    ORDER_SERVICE_UNAVAILABLE("ORDER_SERVICE_UNAVAILABLE", "Order service is unavailable."),
+    ORDER_SERVICE_TIMEOUT("ORDER_SERVICE_TIMEOUT", "Order service request timed out."),
     INSUFFICIENT_STOCK("INSUFFICIENT_STOCK", "Insufficient stock."),
     INVENTORY_SERVICE_UNAVAILABLE("INVENTORY_SERVICE_UNAVAILABLE", "Inventory service is unavailable."),
     INVENTORY_SERVICE_TIMEOUT("INVENTORY_SERVICE_TIMEOUT", "Inventory service request timed out.");
