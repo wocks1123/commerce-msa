@@ -8,7 +8,6 @@ import dev.labs.commerce.payment.core.payment.domain.exception.OrderClientExcept
 import dev.labs.commerce.payment.core.payment.domain.exception.OrderNotFoundException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentErrorCode;
 import dev.labs.commerce.payment.core.payment.infra.client.dto.GetSalesOrderResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -21,12 +20,14 @@ import java.net.SocketTimeoutException;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class OrderClientAdapter implements OrderPort {
 
-    @Qualifier("orderRestClient")
     private final RestClient restClient;
+
+    public OrderClientAdapter(@Qualifier("orderRestClient") RestClient restClient) {
+        this.restClient = restClient;
+    }
 
     @Override
     public OrderSnapshot getOrder(String orderId) {
