@@ -81,13 +81,7 @@ Content-Type: application/json
   "customerId": 1,
   "amount": 398000,
   "currency": "KRW",
-  "idempotencyKey": "{{$uuid}}",
-  "items": [
-    {
-      "productId": {{productId}},
-      "quantity": 2
-    }
-  ]
+  "idempotencyKey": "{{$uuid}}"
 }
 
 > {%
