@@ -4,10 +4,10 @@ import dev.labs.commerce.payment.core.payment.application.event.PaymentEventPubl
 import dev.labs.commerce.payment.core.payment.application.event.PaymentInitializedEvent;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentResult;
-import dev.labs.commerce.payment.core.payment.domain.InventoryPort;
-import dev.labs.commerce.payment.core.payment.domain.Payment;
-import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
+import dev.labs.commerce.payment.core.payment.domain.*;
+import dev.labs.commerce.payment.core.payment.domain.exception.OrderNotPayableException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentAlreadyExistsException;
+import dev.labs.commerce.payment.core.payment.domain.exception.PaymentOrderMismatchException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +22,7 @@ import java.util.List;
 public class InitializePaymentUseCase {
 
     private final PaymentRepository paymentRepository;
+    private final OrderPort orderPort;
     private final InventoryPort inventoryPort;
     private final PaymentEventPublisher paymentEventPublisher;
 
@@ -36,7 +37,12 @@ public class InitializePaymentUseCase {
             throw new PaymentAlreadyExistsException("idempotencyKey=" + command.idempotencyKey());
         }
 
-        List<InventoryPort.Item> inventoryItems = command.items().stream()
+        // 주문 원본과 대조한다. 재고 예약보다 앞에 두어 검증 실패 시 점유된 재고가 남지 않게 한다.
+        OrderPort.OrderSnapshot order = orderPort.getOrder(command.orderId());
+        verifyAgainstOrder(command, order);
+
+        // 예약 품목은 클라이언트 입력이 아니라 주문 원본을 사용한다.
+        List<InventoryPort.Item> inventoryItems = order.items().stream()
                 .map(i -> new InventoryPort.Item(i.productId(), i.quantity()))
                 .toList();
         inventoryPort.reserve(command.orderId(), inventoryItems);
@@ -70,5 +76,36 @@ public class InitializePaymentUseCase {
                 saved.getCurrency(),
                 saved.getRequestedAt()
         );
+    }
+
+    /**
+     * 결제 요청 값을 주문 원본과 대조한다.
+     */
+    private void verifyAgainstOrder(InitializePaymentCommand command, OrderPort.OrderSnapshot order) {
+        if (order.status() != OrderStatus.CREATED) {
+            throw new OrderNotPayableException(command.orderId(), order.status());
+        }
+        if (command.customerId() != order.customerId()) {
+            throw mismatch(command.orderId(), PaymentOrderMismatchException.Field.CUSTOMER_ID,
+                    command.customerId(), order.customerId());
+        }
+        // 주의: 금액은 totalPrice다. SalesOrder.totalAmount는 수량 합계다.
+        if (command.amount() != order.totalPrice()) {
+            throw mismatch(command.orderId(), PaymentOrderMismatchException.Field.AMOUNT,
+                    command.amount(), order.totalPrice());
+        }
+        if (!command.currency().equals(order.currency())) {
+            throw mismatch(command.orderId(), PaymentOrderMismatchException.Field.CURRENCY,
+                    command.currency(), order.currency());
+        }
+    }
+
+    private PaymentOrderMismatchException mismatch(String orderId,
+                                                   PaymentOrderMismatchException.Field field,
+                                                   Object requested,
+                                                   Object order) {
+        log.warn("Payment request does not match order: orderId={}, field={}, requested={}, order={}",
+                orderId, field, requested, order);
+        return new PaymentOrderMismatchException(field);
     }
 }

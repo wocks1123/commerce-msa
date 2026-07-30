@@ -5,12 +5,15 @@ import dev.labs.commerce.payment.core.payment.application.event.PaymentInitializ
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentCommand;
 import dev.labs.commerce.payment.core.payment.application.usecase.dto.InitializePaymentResult;
 import dev.labs.commerce.payment.core.payment.domain.InventoryPort;
+import dev.labs.commerce.payment.core.payment.domain.OrderPort;
+import dev.labs.commerce.payment.core.payment.domain.OrderStatus;
 import dev.labs.commerce.payment.core.payment.domain.Payment;
 import dev.labs.commerce.payment.core.payment.domain.PaymentRepository;
 import dev.labs.commerce.payment.core.payment.domain.PaymentStatus;
 import dev.labs.commerce.payment.core.payment.domain.PgProvider;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentAlreadyExistsException;
 import dev.labs.commerce.payment.core.payment.domain.fixture.PaymentFixture;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,8 +39,15 @@ import static org.mockito.Mockito.never;
 @ExtendWith(MockitoExtension.class)
 class InitializePaymentUseCaseTest {
 
+    private static final long CUSTOMER_ID = 100L;
+    private static final long TOTAL_PRICE = 10000L;
+    private static final String CURRENCY = "KRW";
+
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private OrderPort orderPort;
 
     @Mock
     private InventoryPort inventoryPort;
@@ -63,6 +73,7 @@ class InitializePaymentUseCaseTest {
                 .build();
         given(paymentRepository.existsByOrderId(command.orderId())).willReturn(false);
         given(paymentRepository.findByIdempotencyKey(command.idempotencyKey())).willReturn(Optional.empty());
+        given(orderPort.getOrder(command.orderId())).willReturn(sampleOrder(command.orderId(), OrderStatus.CREATED));
         given(paymentRepository.save(any(Payment.class))).willReturn(saved);
 
         // when
@@ -79,13 +90,14 @@ class InitializePaymentUseCaseTest {
     }
 
     @Test
-    @DisplayName("Command의 items가 InventoryPort.Item으로 변환되어 reserve에 전달된다")
-    void execute_passesItemsToInventoryPort() {
+    @DisplayName("재고 예약에는 클라이언트 입력이 아니라 주문에서 조회한 품목이 사용된다")
+    void execute_reservesOrderItemsNotClientItems() {
         // given
         final InitializePaymentCommand command = sampleCommand("order-2", "idem-2");
         final Payment saved = PaymentFixture.builder().withSample().orderId(command.orderId()).build();
         given(paymentRepository.existsByOrderId(anyString())).willReturn(false);
         given(paymentRepository.findByIdempotencyKey(anyString())).willReturn(Optional.empty());
+        given(orderPort.getOrder(command.orderId())).willReturn(sampleOrder(command.orderId(), OrderStatus.CREATED));
         given(paymentRepository.save(any(Payment.class))).willReturn(saved);
 
         // when
@@ -98,8 +110,8 @@ class InitializePaymentUseCaseTest {
         assertThat(itemsCaptor.getValue())
                 .extracting(InventoryPort.Item::productId, InventoryPort.Item::quantity)
                 .containsExactly(
-                        org.assertj.core.groups.Tuple.tuple(10L, 2),
-                        org.assertj.core.groups.Tuple.tuple(20L, 1)
+                        Tuple.tuple(10L, 2),
+                        Tuple.tuple(20L, 1)
                 );
     }
 
@@ -113,6 +125,7 @@ class InitializePaymentUseCaseTest {
         // when & then
         assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
                 .isInstanceOf(PaymentAlreadyExistsException.class);
+        then(orderPort).shouldHaveNoInteractions();
         then(inventoryPort).shouldHaveNoInteractions();
         then(paymentRepository).should(never()).save(any(Payment.class));
         then(paymentEventPublisher).shouldHaveNoInteractions();
@@ -130,6 +143,7 @@ class InitializePaymentUseCaseTest {
         // when & then
         assertThatThrownBy(() -> initializePaymentUseCase.execute(command))
                 .isInstanceOf(PaymentAlreadyExistsException.class);
+        then(orderPort).shouldHaveNoInteractions();
         then(inventoryPort).shouldHaveNoInteractions();
         then(paymentRepository).should(never()).save(any(Payment.class));
         then(paymentEventPublisher).shouldHaveNoInteractions();
@@ -138,15 +152,25 @@ class InitializePaymentUseCaseTest {
     private InitializePaymentCommand sampleCommand(String orderId, String idempotencyKey) {
         return new InitializePaymentCommand(
                 orderId,
-                100L,
-                10000L,
-                "KRW",
+                CUSTOMER_ID,
+                TOTAL_PRICE,
+                CURRENCY,
                 idempotencyKey,
                 PgProvider.MOCK_PAY,
-                Instant.now(),
+                Instant.now()
+        );
+    }
+
+    private OrderPort.OrderSnapshot sampleOrder(String orderId, OrderStatus status) {
+        return new OrderPort.OrderSnapshot(
+                orderId,
+                CUSTOMER_ID,
+                status,
+                TOTAL_PRICE,
+                CURRENCY,
                 List.of(
-                        new InitializePaymentCommand.Item(10L, 2),
-                        new InitializePaymentCommand.Item(20L, 1)
+                        new OrderPort.OrderSnapshot.Item(10L, 2),
+                        new OrderPort.OrderSnapshot.Item(20L, 1)
                 )
         );
     }
