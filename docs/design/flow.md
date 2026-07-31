@@ -1,5 +1,6 @@
 # 주문 흐름
 
+- 결제 초기화 시점에 주문 원본을 동기 조회해 금액·고객·통화를 대조하고, 예약 품목도 주문에서 가져온다
 - 결제 초기화 시점에 재고를 동기 예약하여 결제창 진입 전 재고 확보를 보장
 - 재고 확정·해제 등 사후 처리는 Kafka 이벤트로 비동기 협력
 
@@ -16,20 +17,27 @@ sequenceDiagram
     PS -->> OS: 상품 정보
     OS -->> C: 주문 생성 (CREATED)
     C ->> PAY: 2. POST /api/v1/payments
-    PAY ->> IS: 재고 예약 (REST)
-    alt 재고 부족
-        IS -->> PAY: 실패 응답
-        PAY -->> C: 재고 부족 실패 응답
-        IS ->> K: stock.reservation.failed
-        K ->> OS: stock.reservation.failed
-        OS ->> OS: 주문 상태 → ABORTED
-    else 재고 예약 성공
-        IS -->> PAY: 성공
-        PAY ->> PAY: 결제 레코드 저장 (REQUESTED)
-        PAY ->> K: payment.initialized
-        K ->> OS: payment.initialized
-        OS ->> OS: 주문 상태 → PENDING
-        PAY -->> C: PG 결제창 진입 정보 응답
+    PAY ->> OS: 주문 조회 (REST)
+    OS -->> PAY: 주문 원본 (상태·고객·금액·통화·품목)
+    alt 주문 검증 실패 (미존재 / CREATED 아님 / 금액·고객·통화 불일치)
+        PAY -->> C: 검증 실패 응답 (404 / 409 / 400)
+        note over PAY: 재고 예약 이전이므로 점유된 재고·해제 이벤트가 남지 않음
+    else 주문 검증 성공
+        PAY ->> IS: 재고 예약 (REST, 주문에서 조회한 품목 사용)
+        alt 재고 부족
+            IS -->> PAY: 실패 응답
+            PAY -->> C: 재고 부족 실패 응답
+            IS ->> K: stock.reservation.failed
+            K ->> OS: stock.reservation.failed
+            OS ->> OS: 주문 상태 → ABORTED
+        else 재고 예약 성공
+            IS -->> PAY: 성공
+            PAY ->> PAY: 결제 레코드 저장 (REQUESTED)
+            PAY ->> K: payment.initialized
+            K ->> OS: payment.initialized
+            OS ->> OS: 주문 상태 → PENDING
+            PAY -->> C: PG 결제창 진입 정보 응답
+        end
     end
 
     C ->> PAY: 3-a. GET /payments/mock-pay/success (PG 결제 성공 콜백)

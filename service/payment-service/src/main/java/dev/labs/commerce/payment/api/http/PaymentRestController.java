@@ -39,6 +39,7 @@ public class PaymentRestController {
     @Operation(summary = "Initialize payment")
     @ApiResponse(responseCode = "201", description = "Payment initialized successfully", content = @Content(schema = @Schema(implementation = InitializePaymentResponse.class)))
     @ApiBadRequestResponse
+    @ApiNotFoundResponse
     @ApiConflictResponse
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -50,10 +51,7 @@ public class PaymentRestController {
                 request.currency(),
                 request.idempotencyKey(),
                 PgProvider.MOCK_PAY,
-                Instant.now(),
-                request.items().stream()
-                        .map(i -> new InitializePaymentCommand.Item(i.productId(), i.quantity()))
-                        .toList()
+                Instant.now()
         );
 
         InitializePaymentResult result = initializePaymentUseCase.execute(command);

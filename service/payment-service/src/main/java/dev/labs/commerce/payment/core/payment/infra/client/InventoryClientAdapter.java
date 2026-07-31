@@ -3,12 +3,11 @@ package dev.labs.commerce.payment.core.payment.infra.client;
 import dev.labs.commerce.common.error.DependencyTimeoutException;
 import dev.labs.commerce.common.error.DependencyUnavailableException;
 import dev.labs.commerce.payment.core.payment.domain.InventoryPort;
+import dev.labs.commerce.payment.core.payment.domain.exception.InsufficientStockException;
 import dev.labs.commerce.payment.core.payment.domain.exception.InventoryClientException;
 import dev.labs.commerce.payment.core.payment.domain.exception.InventoryNotFoundException;
-import dev.labs.commerce.payment.core.payment.domain.exception.InsufficientStockException;
 import dev.labs.commerce.payment.core.payment.domain.exception.PaymentErrorCode;
 import dev.labs.commerce.payment.core.payment.infra.client.dto.ReserveInventoryRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -21,12 +20,14 @@ import java.net.SocketTimeoutException;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class InventoryClientAdapter implements InventoryPort {
 
-    @Qualifier("inventoryRestClient")
     private final RestClient restClient;
+
+    public InventoryClientAdapter(@Qualifier("inventoryRestClient") RestClient restClient) {
+        this.restClient = restClient;
+    }
 
     @Override
     public void reserve(String orderId, List<InventoryPort.Item> items) {

@@ -33,6 +33,10 @@ service:
       base-url: http://localhost:1
       connect-timeout: 1000
       read-timeout: 1000
+    order:
+      base-url: http://localhost:1
+      connect-timeout: 1000
+      read-timeout: 1000
 
 logging:
   level:
