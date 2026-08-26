@@ -5,6 +5,7 @@ import dev.labs.commerce.common.error.DependencyUnavailableException;
 import dev.labs.commerce.order.core.order.domain.ProductInfo;
 import dev.labs.commerce.order.core.order.domain.ProductPort;
 import dev.labs.commerce.order.core.order.domain.error.OrderErrorCode;
+import dev.labs.commerce.order.core.order.domain.error.ProductClientException;
 import dev.labs.commerce.order.core.order.infra.client.dto.ProductSummaryDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +38,8 @@ public class ProductClientAdapter implements ProductPort {
                             .build())
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
-                        throw new DependencyUnavailableException(
-                                OrderErrorCode.PRODUCT_SERVICE_UNAVAILABLE,
-                                "Product service returned " + res.getStatusCode());
+                        throw new ProductClientException(
+                                "Unexpected 4xx from product-service: " + res.getStatusCode());
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, (req, res) -> {
                         throw new DependencyUnavailableException(
