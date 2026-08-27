@@ -64,10 +64,9 @@ public class OrderClientAdapter implements OrderPort {
 
     private static OrderSnapshot toSnapshot(String orderId, GetSalesOrderResponse response) {
         // 주문은 항상 1개 이상의 품목을 가진다(order-service의 생성 검증). 비어 있다면 응답 계약 위반이다.
+        // 재시도해도 같은 응답이 오므로 503(재시도 가능)이 아니라 500(양측 계약 결함)으로 다룬다.
         if (response == null || response.items() == null || response.items().isEmpty()) {
-            throw new DependencyUnavailableException(
-                    PaymentErrorCode.ORDER_SERVICE_UNAVAILABLE,
-                    "Malformed order response: orderId=" + orderId);
+            throw new OrderClientException("Malformed order response from order-service: orderId=" + orderId);
         }
 
         List<OrderSnapshot.Item> items = response.items().stream()

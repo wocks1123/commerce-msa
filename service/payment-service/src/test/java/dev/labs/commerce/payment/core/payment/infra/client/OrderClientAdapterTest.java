@@ -107,8 +107,8 @@ class OrderClientAdapterTest {
     }
 
     @Test
-    @DisplayName("품목이 비어 있는 응답은 계약 위반으로 DependencyUnavailableException이 발생한다")
-    void getOrder_whenItemsEmpty_throwsDependencyUnavailableException() {
+    @DisplayName("품목이 비어 있는 응답은 계약 위반으로 OrderClientException이 발생한다 (재시도 불가 → 500)")
+    void getOrder_whenItemsEmpty_throwsOrderClientException() {
         // given
         expectOrderCall().andRespond(withSuccess("""
                 {
@@ -121,13 +121,23 @@ class OrderClientAdapterTest {
                 }
                 """.formatted(ORDER_ID), MediaType.APPLICATION_JSON));
 
-        // when
-        final Throwable thrown = catchThrowable(() -> orderClientAdapter.getOrder(ORDER_ID));
+        // when & then
+        assertThatThrownBy(() -> orderClientAdapter.getOrder(ORDER_ID))
+                .isInstanceOf(OrderClientException.class)
+                .hasMessageContaining(ORDER_ID);
+        server.verify();
+    }
 
-        // then
-        assertThat(thrown).isInstanceOf(DependencyUnavailableException.class);
-        assertThat(((DependencyUnavailableException) thrown).getErrorCode())
-                .isEqualTo(PaymentErrorCode.ORDER_SERVICE_UNAVAILABLE);
+    @Test
+    @DisplayName("본문이 없는 200 응답은 계약 위반으로 OrderClientException이 발생한다 (재시도 불가 → 500)")
+    void getOrder_whenBodyEmpty_throwsOrderClientException() {
+        // given
+        expectOrderCall().andRespond(withSuccess());
+
+        // when & then
+        assertThatThrownBy(() -> orderClientAdapter.getOrder(ORDER_ID))
+                .isInstanceOf(OrderClientException.class)
+                .hasMessageContaining(ORDER_ID);
         server.verify();
     }
 
