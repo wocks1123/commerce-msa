@@ -1,0 +1,51 @@
+server:
+  port: 20100
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: product-service
+              uri: ${service.route.product.uri}
+              predicates:
+                - Path=/api/v1/products/**
+
+            - id: inventory-service
+              uri: ${service.route.inventory.uri}
+              predicates:
+                - Path=/api/v1/inventories/**
+
+            - id: order-service
+              uri: ${service.route.order.uri}
+              predicates:
+                - Path=/api/v1/orders/**
+
+            - id: payment-service
+              uri: ${service.route.payment.uri}
+              predicates:
+                - Path=/api/v1/payments/**
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+
+service:
+  route:
+    product:
+      uri: http://localhost:20101
+    inventory:
+      uri: http://localhost:20102
+    order:
+      uri: http://localhost:20103
+    payment:
+      uri: http://localhost:20104
