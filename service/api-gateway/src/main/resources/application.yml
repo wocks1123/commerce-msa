@@ -9,6 +9,15 @@ spring:
     gateway:
       server:
         webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origin-patterns: ${gateway.cors.allowed-origin-patterns}
+                allowed-methods: "*"
+                allowed-headers: "*"
+                allow-credentials: true
+                max-age: 3600
+
           routes:
             - id: product-service
               uri: ${service.route.product.uri}
@@ -38,6 +47,11 @@ management:
 logging:
   pattern:
     correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+
+gateway:
+  cors:
+    # 운영에서는 GATEWAY_CORS_ALLOWEDORIGINPATTERNS 로 실제 도메인을 지정해야한다.
+    allowed-origin-patterns: "*"
 
 service:
   route:
