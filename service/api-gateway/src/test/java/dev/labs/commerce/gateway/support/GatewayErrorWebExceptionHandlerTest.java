@@ -95,7 +95,7 @@ class GatewayErrorWebExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("분류되지 않은 예외는 500과 INTERNAL_ERROR로 처리한다")
+    @DisplayName("분류되지 않은 예외는 500과 GATEWAY_INTERNAL_ERROR로 처리한다")
     void returnsInternalErrorForUnclassifiedException() {
         // given
         final MockServerWebExchange exchange = exchangeFor("/api/v1/payments");
@@ -107,7 +107,7 @@ class GatewayErrorWebExceptionHandlerTest {
         // then
         final JsonNode result = bodyOf(exchange);
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(result.get("code").asText()).isEqualTo("INTERNAL_ERROR");
+        assertThat(result.get("code").asText()).isEqualTo("GATEWAY_INTERNAL_ERROR");
     }
 
     @Test

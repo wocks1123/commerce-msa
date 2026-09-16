@@ -80,7 +80,7 @@ public class GatewayErrorWebExceptionHandler implements ErrorWebExceptionHandler
             case NOT_FOUND -> GatewayErrorCode.ROUTE_NOT_FOUND;
             case SERVICE_UNAVAILABLE -> GatewayErrorCode.SERVICE_UNAVAILABLE;
             case GATEWAY_TIMEOUT -> GatewayErrorCode.GATEWAY_TIMEOUT;
-            case INTERNAL_SERVER_ERROR -> GatewayErrorCode.INTERNAL_ERROR;
+            case INTERNAL_SERVER_ERROR -> GatewayErrorCode.GATEWAY_INTERNAL_ERROR;
             default -> GatewayErrorCode.GATEWAY_ERROR;
         };
     }

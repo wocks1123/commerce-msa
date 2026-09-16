@@ -84,7 +84,8 @@ class GatewayErrorPassThroughIntegrationTest {
         result.expectStatus().is5xxServerError()
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(500)
-                .jsonPath("$.instance").isEqualTo("/api/v1/products/boom");
+                .jsonPath("$.instance").isEqualTo("/api/v1/products/boom")
+                .jsonPath("$.code").isEqualTo("INTERNAL_ERROR");
     }
 
     @Test

@@ -13,8 +13,8 @@ public enum GatewayErrorCode {
     ROUTE_NOT_FOUND("ROUTE_NOT_FOUND", "No route matched the request path."),
     SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE", "Downstream service is unavailable."),
     GATEWAY_TIMEOUT("GATEWAY_TIMEOUT", "Downstream service did not respond in time."),
-    GATEWAY_ERROR("GATEWAY_ERROR", "The gateway could not process the request."),
-    INTERNAL_ERROR("INTERNAL_ERROR", "An unexpected server error occurred.");
+    GATEWAY_ERROR("GATEWAY_ERROR", "The gateway rejected the request."),
+    GATEWAY_INTERNAL_ERROR("GATEWAY_INTERNAL_ERROR", "The gateway failed to process the request.");
 
     private final String code;
     private final String message;

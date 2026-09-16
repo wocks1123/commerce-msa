@@ -53,7 +53,7 @@
 | 다운스트림 연결 거부 | 503 | `SERVICE_UNAVAILABLE` |
 | 다운스트림 응답 타임아웃 | 504 | `GATEWAY_TIMEOUT` |
 | 그 외 게이트웨이 거부 | 해당 상태코드 | `GATEWAY_ERROR` |
-| 분류되지 않은 예외 | 500 | `INTERNAL_ERROR` |
+| 분류되지 않은 예외 | 500 | `GATEWAY_INTERNAL_ERROR` |
 
 형식은 다른 서비스와 동일한 `application/problem+json`이다.
 
