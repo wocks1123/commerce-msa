@@ -86,6 +86,7 @@ configure(subprojects.filter { it.path.startsWith(":service:") }) {
 }
 
 dependencies {
+    jacocoAggregation(project(":service:api-gateway"))
     jacocoAggregation(project(":service:inventory-service"))
     jacocoAggregation(project(":service:order-service"))
     jacocoAggregation(project(":service:payment-service"))
