@@ -2,6 +2,7 @@ rootProject.name = "commerce"
 
 include(":shared:common")
 
+include(":service:api-gateway")
 include(":service:inventory-service")
 include(":service:order-service")
 include(":service:product-service")

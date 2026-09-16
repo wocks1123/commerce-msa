@@ -1,0 +1,119 @@
+server:
+  port: 20100
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            # 다운스트림이 응답하지 않을 때 커넥션을 무한정 붙잡지 않도록 하는 안전장치.
+            # 각 서비스가 자체 RestClient 타임아웃(connect 3s / read 5s)을 갖고 있으므로
+            # 게이트웨이 타임아웃은 그보다 넉넉하게 두어 backstop 역할만 한다.
+            connect-timeout: 3000
+            response-timeout: 10s
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origin-patterns: ${gateway.cors.allowed-origin-patterns}
+                allowed-methods: "*"
+                allowed-headers: "*"
+                allow-credentials: true
+                max-age: 3600
+
+          routes:
+            - id: product-service
+              uri: ${service.route.product.uri}
+              predicates:
+                - Path=/api/v1/products/**
+
+            - id: inventory-service
+              uri: ${service.route.inventory.uri}
+              predicates:
+                - Path=/api/v1/inventories/**
+
+            - id: order-service
+              uri: ${service.route.order.uri}
+              predicates:
+                - Path=/api/v1/orders/**
+
+            - id: payment-service
+              uri: ${service.route.payment.uri}
+              predicates:
+                - Path=/api/v1/payments/**
+
+            # 각 서비스의 OpenAPI 스펙을 게이트웨이 경로로 프록시한다.
+            # 서비스는 모두 /api-docs 한 경로로 노출하므로 SetPath로 되돌려준다.
+            # 이 라우트들만 경로 재작성이 필요하다.
+            - id: product-api-docs
+              uri: ${service.route.product.uri}
+              predicates:
+                - Path=/api-docs/product
+              filters:
+                - SetPath=/api-docs
+
+            - id: inventory-api-docs
+              uri: ${service.route.inventory.uri}
+              predicates:
+                - Path=/api-docs/inventory
+              filters:
+                - SetPath=/api-docs
+
+            - id: order-api-docs
+              uri: ${service.route.order.uri}
+              predicates:
+                - Path=/api-docs/order
+              filters:
+                - SetPath=/api-docs
+
+            - id: payment-api-docs
+              uri: ${service.route.payment.uri}
+              predicates:
+                - Path=/api-docs/payment
+              filters:
+                - SetPath=/api-docs
+
+springdoc:
+  # springdoc.api-docs.enabled 는 springdoc 자동설정 전체의 스위치라서
+  # false 로 두면 swagger-ui 까지 같이 꺼진다. 게이트웨이 자체 스펙(/v3/api-docs)은
+  # 컨트롤러가 없어 비어 있지만, 드롭다운은 아래 urls 로만 구성되므로 노출되지 않는다.
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: product-service
+        url: /api-docs/product
+      - name: inventory-service
+        url: /api-docs/inventory
+      - name: order-service
+        url: /api-docs/order
+      - name: payment-service
+        url: /api-docs/payment
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+
+gateway:
+  cors:
+    # 운영에서는 GATEWAY_CORS_ALLOWEDORIGINPATTERNS 로 실제 도메인을 지정해야한다.
+    allowed-origin-patterns: "*"
+
+service:
+  route:
+    product:
+      uri: http://localhost:20101
+    inventory:
+      uri: http://localhost:20102
+    order:
+      uri: http://localhost:20103
+    payment:
+      uri: http://localhost:20104
