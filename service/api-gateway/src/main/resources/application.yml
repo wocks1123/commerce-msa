@@ -46,6 +46,53 @@ spring:
               predicates:
                 - Path=/api/v1/payments/**
 
+            # 각 서비스의 OpenAPI 스펙을 게이트웨이 경로로 프록시한다.
+            # 서비스는 모두 /api-docs 한 경로로 노출하므로 SetPath로 되돌려준다.
+            # 이 라우트들만 경로 재작성이 필요하다.
+            - id: product-api-docs
+              uri: ${service.route.product.uri}
+              predicates:
+                - Path=/api-docs/product
+              filters:
+                - SetPath=/api-docs
+
+            - id: inventory-api-docs
+              uri: ${service.route.inventory.uri}
+              predicates:
+                - Path=/api-docs/inventory
+              filters:
+                - SetPath=/api-docs
+
+            - id: order-api-docs
+              uri: ${service.route.order.uri}
+              predicates:
+                - Path=/api-docs/order
+              filters:
+                - SetPath=/api-docs
+
+            - id: payment-api-docs
+              uri: ${service.route.payment.uri}
+              predicates:
+                - Path=/api-docs/payment
+              filters:
+                - SetPath=/api-docs
+
+springdoc:
+  # springdoc.api-docs.enabled 는 springdoc 자동설정 전체의 스위치라서
+  # false 로 두면 swagger-ui 까지 같이 꺼진다. 게이트웨이 자체 스펙(/v3/api-docs)은
+  # 컨트롤러가 없어 비어 있지만, 드롭다운은 아래 urls 로만 구성되므로 노출되지 않는다.
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: product-service
+        url: /api-docs/product
+      - name: inventory-service
+        url: /api-docs/inventory
+      - name: order-service
+        url: /api-docs/order
+      - name: payment-service
+        url: /api-docs/payment
+
 management:
   tracing:
     sampling:
