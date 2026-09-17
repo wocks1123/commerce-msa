@@ -24,6 +24,9 @@
 > Spring MVC와 달리 구체적인 패턴이 우선하지 않는다.
 > `/api/v1/**` 같은 넓은 패턴을 위에 추가하면 아래 라우트가 전부 죽는다.
 
+> **Method predicate 주의.** 라우트를 `Method` predicate로 좁혀 화이트리스트를 만들지 않는다.
+> preflight(OPTIONS)가 라우트에 매칭되지 않아 CORS가 깨진다.
+
 ## Swagger UI
 
 통합 UI: **`http://localhost:20100/swagger-ui.html`** (드롭다운으로 네 서비스 전환)
@@ -90,31 +93,3 @@
   실패하고, `@RestControllerAdvice`는 WebFlux에 없는 서블릿 API를 쓴다.
 - 블로킹 호출 금지. JPA, `RestTemplate`, `Thread.sleep`, 동기 파일 I/O 모두 해당한다.
   이벤트 루프 스레드가 막히면 전체 처리량이 떨어진다.
-
-## 현재 범위 밖
-
-| 항목 | 비고 |
-|---|---|
-| 인증 / 인가 | 인증 서비스와 사용자 개념이 아직 없다 |
-| 서비스 디스커버리 | 정적 주소 + 환경변수로 충분 |
-| 서킷브레이커 / 재시도 | Resilience4j 연동은 추후 |
-| 처리율 제한 | 키 전략(IP/사용자/API 키) 미정 |
-| 응답 집계 (BFF) | 게이트웨이를 도메인 로직으로 오염시킴 |
-
-## 알려진 이슈
-
-`Path=/api/v1/inventories/**` 같은 와일드카드가 내부 전용 및 관리자용 엔드포인트까지 외부에 노출한다.
-
-| 엔드포인트 | 성격 |
-|---|---|
-| `POST /api/v1/inventories/reserve` | 내부 (payment → inventory) |
-| `GET /api/v1/products?ids=` | 내부 (order → product) |
-| `PATCH /api/v1/inventories/{id}/quantity` | 관리자 |
-| `POST`/`PUT` `/api/v1/products`, `PATCH /{id}/status` | 관리자 |
-
-게이트웨이 도입 이전에도 서비스 포트가 직접 열려 있었으므로 노출 범위가 넓어진 것은 아니다.
-내부 엔드포인트를 `/internal/**`로 분리하는 작업은 별도로 진행한다.
-관리자 엔드포인트는 인증 도입과 함께 다룬다.
-
-> 라우트를 `Method` predicate로 좁혀 화이트리스트를 만드는 방식은 권하지 않는다.
-> preflight(OPTIONS)가 라우트에 매칭되지 않아 CORS가 깨진다.

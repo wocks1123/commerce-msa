@@ -8,7 +8,7 @@
 ## 기술 스택
 
 - **Language** Java 21
-- **Framework** Spring Boot 3.5, Spring Cloud Stream
+- **Framework** Spring Boot 3.5, Spring Cloud Stream, Spring Cloud Gateway
 - **Build** Gradle (Kotlin DSL, Multi-module)
 - **Database** PostgreSQL 16 (서비스별 스키마 분리)
 - **Messaging** Apache Kafka (KRaft)
@@ -21,12 +21,16 @@
 
 | Service           | Port  | 역할                 |
 |-------------------|-------|--------------------|
+| api-gateway       | 20100 | 외부 요청 단일 진입점 / 라우팅  |
 | product-service   | 20101 | 상품 등록 / 조회 / 상태 관리 |
 | inventory-service | 20102 | 재고 등록 / 수량 관리      |
 | order-service     | 20103 | 주문 생성 / 상태 추적      |
 | payment-service   | 20104 | 결제 초기화 / 승인 처리     |
 
 공유 라이브러리 `shared/common`은 예외 계층, 이벤트 유틸리티, 웹 에러 처리를 Spring Boot Auto-configuration으로 제공
+
+외부 클라이언트는 게이트웨이(`:20100`)만 호출한다. 서비스 간 동기 호출은 게이트웨이를 거치지 않고
+서로의 포트로 직접 통신한다. 라우팅 규칙과 게이트웨이 에러 포맷은 [api-gateway 라우트](service/api-gateway/docs/routes.md) 참고
 
 ---
 
@@ -85,6 +89,7 @@ cd deploy && docker compose up -d
 ./gradlew :service:inventory-service:bootRun
 ./gradlew :service:order-service:bootRun
 ./gradlew :service:payment-service:bootRun
+./gradlew :service:api-gateway:bootRun
 ```
 
 ### 3. 시나리오 실행
@@ -100,9 +105,18 @@ cd deploy && docker compose up -d
 | 5  | 결제 초기화 `POST /api/v1/payments`                  | payment-service   |
 | 6  | PG 콜백 시뮬레이션 `GET /payments/mock-pay/success`    | payment-service   |
 
+### API 문서
+
+| URL | 내용 |
+|---|---|
+| `http://localhost:20100/swagger-ui.html` | 통합 Swagger UI |
+| `service/*/docs/openapi.json` | 서비스별 OpenAPI 스펙 |
+
+스펙 갱신은 `./gradlew :service:{name}:generateOpenApiDocs` 실행 후 생성된 `build/openapi.json`을 해당 서비스의 `docs/`로 복사한다.
+
 ### Docker Compose로 전체 실행 (인프라 + 서비스 일괄 기동)
 
-인프라와 4개 서비스를 한 번에 빌드·실행한다.
+인프라와 서비스 5개를 한 번에 빌드 및 실행한다.
 
 ```bash
 docker compose -f docker-compose.app.yml up --build
@@ -132,3 +146,4 @@ docker compose -f docker-compose.app.yml down -v
 - [Kafka 토픽](docs/design/topics.md)
 - [주요 컴포넌트 (스케줄러, Mock PG, DLT)](docs/design/components.md)
 - [이벤트 Envelope 구조](docs/design/event-envelope.md)
+- [API Gateway 라우트](service/api-gateway/docs/routes.md)
