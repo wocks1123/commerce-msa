@@ -183,30 +183,5 @@ services:
       payment-service:
         condition: service_started
 
-  # ── API Gateway ───────────────────────────────────────────────
-
-  api-gateway:
-    container_name: commerce-app-gateway
-    build:
-      context: .
-      args:
-        SERVICE_NAME: api-gateway
-    ports:
-      - "20100:20100"
-    environment:
-      SERVICE_ROUTE_PRODUCT_URI: http://product-service:20101
-      SERVICE_ROUTE_INVENTORY_URI: http://inventory-service:20102
-      SERVICE_ROUTE_ORDER_URI: http://order-service:20103
-      SERVICE_ROUTE_PAYMENT_URI: http://payment-service:20104
-    depends_on:
-      product-service:
-        condition: service_started
-      inventory-service:
-        condition: service_started
-      order-service:
-        condition: service_started
-      payment-service:
-        condition: service_started
-
 volumes:
   pgdata:
