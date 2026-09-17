@@ -1,11 +1,3 @@
-###### Variables
-### Base URL
-@PRODUCT_SERVICE_BASE_URL = http://localhost:20101
-@INVENTORY_SERVICE_BASE_URL = http://localhost:20102
-@ORDER_SERVICE_BASE_URL = http://localhost:20103
-@PAYMENT_SERVICE_BASE_URL = http://localhost:20104
-
-
 #################################################
 ### Register new product
 POST {{PRODUCT_SERVICE_BASE_URL}}/api/v1/products
